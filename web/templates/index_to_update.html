@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Host Info</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root {
+  --bg: #020617;
+  --card: #020617;
+  --border: #1e293b;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --good: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px;
+  background: radial-gradient(circle at top, #020617, #000);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+header {
+  margin-bottom: 32px;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  margin: 0;
+  color: var(--accent);
+}
+
+header p {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: linear-gradient(180deg, #020617, #020617);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.6);
+}
+
+.card h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+
+.card li:last-child {
+  border-bottom: none;
+}
+
+.key {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-all;
+  text-align: right;
+}
+
+.badge {
+  background: rgba(56,189,248,.15);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.env {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+footer {
+  margin-top: 32px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>🚀 Host Info Dashboard</h1>
+  <p>Runtime, container, cloud and Kubernetes metadata</p>
+</header>
+
+<div class="grid">
+
+  <!-- System -->
+  <div class="card">
+    <h2>🖥 System</h2>
+    <ul>
+      <li><span class="key">Hostname</span><span class="value">{{.Hostname}}</span></li>
+      <li><span class="key">OS</span><span class="value">{{.OS}} / {{.Arch}}</span></li>
+      <li><span class="key">Go</span><span class="value">{{.GoVersion}}</span></li>
+      <li><span class="key">Started</span><span class="value">{{.StartTime}}</span></li>
+      <li><span class="key">Now</span><span class="value">{{.Now}}</span></li>
+    </ul>
+  </div>
+
+  <!-- Network -->
+  <div class="card">
+    <h2>🌐 Network</h2>
+    <ul>
+      {{range .IPs}}
+      <li><span class="key">IP</span><span class="value">{{.}}</span></li>
+      {{end}}
+      {{range .MACs}}
+      <li><span class="key">MAC</span><span class="value">{{.}}</span></li>
+      {{end}}
+    </ul>
+  </div>
+
+  <!-- Cloud -->
+  <div class="card">
+    <h2>☁️ Cloud</h2>
+    <ul>
+      <li>
+        <span class="key">Provider</span>
+        <span class="value">
+          {{if .Cloud.Provider}}
+            <span class="badge">{{.Cloud.Provider}}</span>
+          {{else}}
+            local
+          {{end}}
+        </span>
+      </li>
+      {{if .Cloud.Instance}}<li><span class="key">Instance</span><span class="value">{{.Cloud.Instance}}</span></li>{{end}}
+      {{if .Cloud.Region}}<li><span class="key">Region</span><span class="value">{{.Cloud.Region}}</span></li>{{end}}
+      {{if .Cloud.Zone}}<li><span class="key">Zone</span><span class="value">{{.Cloud.Zone}}</span></li>{{end}}
+      {{range $k, $v := .Cloud.Extra}}
+      <li><span class="key">{{$k}}</span><span class="value">{{$v}}</span></li>
+      {{end}}
+    </ul>
+  </div>
+
+  <!-- Kubernetes -->
+  {{if .Kubernetes.Enabled}}
+  <div class="card">
+    <h2>☸️ Kubernetes</h2>
+    <ul>
+      <li><span class="key">Pod</span><span class="value">{{.Kubernetes.PodName}}</span></li>
+      <li><span class="key">Namespace</span><span class="value">{{.Kubernetes.PodNamespace}}</span></li>
+      <li><span class="key">Pod IP</span><span class="value">{{.Kubernetes.PodIP}}</span></li>
+      <li><span class="key">Node</span><span class="value">{{.Kubernetes.NodeName}}</span></li>
+      <li><span class="key">ServiceAccount</span><span class="value">{{.Kubernetes.ServiceAccount}}</span></li>
+      <li><span class="key">Container</span><span class="value">{{.Kubernetes.Container}}</span></li>
+    </ul>
+  </div>
+  {{end}}
+
+  <!-- Environment -->
+  <div class="card env">
+    <h2>🌱 Environment</h2>
+    <ul>
+      {{range $k, $v := .Env}}
+      <li><span class="key">{{$k}}</span><span class="value">{{$v}}</span></li>
+      {{end}}
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  Built with Go · Docker · Kubernetes · Zero Permissions
+</footer>
+
+</div>
+</body>
+</html>

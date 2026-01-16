@@ -1,0 +1,121 @@
+name: Continuous Integration Pipeline
+
+on:
+  release:
+    types: 
+    - published
+  #   - released
+  #   - created
+
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    # tags: 
+    #   - 'v[0-9]+.[0-9]+.[0-9]+'
+
+  pull_request:
+    branches: [ main ]
+
+env:
+  GO_VERSION: '1.24'
+  MAIN_FILE: './cmd/server/hostinfo.go'
+
+jobs:
+
+  Verification:
+    if: github.ref_name != 'main'
+    name: Verification of all checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      # - name: Cache Go modules
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ~/go/pkg/mod
+      #       ~/.cache/go-build
+      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-go-
+
+
+      - name: Run Lint
+        run: |
+            echo "Running lint..."
+            fmt_out=$(gofmt -l .)
+            if [ -n "$fmt_out" ]; then
+              echo "Go code is not formatted:"
+              echo "$fmt_out"
+              gofmt -d .
+              exit 1
+            fi
+            go vet ./...
+            
+      - name: Run tests
+        run: |
+            echo "Running tests..."
+            go mod download
+            go test -v -race ./...
+            go build -v ${{ env.MAIN_FILE }} 
+
+      - name: Run Security
+        run: |
+            echo "Running security checks..."
+
+            # Hardcoded credentials check
+            # Exclude common directories and files
+            EXCLUDES=(".git" "frontend" "node_modules" "build" "docs")
+            # Exclude file patterns
+            FILE_EXCLUDES=("*.yml" "*.yaml" "*.md" "*.js" "*.jsx" "*.json" "*_test.go")
+            # Build grep exclude params
+            EXCLUDE_PARAMS=()
+            for dir in "${EXCLUDES[@]}"; do EXCLUDE_PARAMS+=(--exclude-dir="$dir"); done
+            for file in "${FILE_EXCLUDES[@]}"; do EXCLUDE_PARAMS+=(--exclude="$file"); done
+            # Run grep safely
+            if grep -rI "password.*=" . "${EXCLUDE_PARAMS[@]}" | \
+               grep -v "^[[:space:]]*//" | \
+               grep -v 'json:' | \
+               grep -v '`json:' | \
+               grep -v "Password.*string" | \
+               grep -v "r.BasicAuth()" | \
+               grep -v "subtle.ConstantTimeCompare"; then
+              echo "Potential hardcoded credentials found"
+              exit 1
+            fi
+
+  build-and-publish-docker:
+    if: github.ref_name != 'main'
+    needs: [Verification]
+    uses: ./.github/workflows/template-docker.yml
+    with:
+      dockerfile_path: "./docker/Dockerfile"
+      docker_push: true
+      image_name: "hostinfo"
+      version: ${{ github.ref_name }}
+      registry: "docker.io"
+      organization: "maximleus"
+      platforms: "linux/amd64,linux/arm64"
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  semantic-release:
+    if: >
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write # to be able to publish a GitHub release
+    uses: ./.github/workflows/template-semantic-release.yml
+    with:
+      dry_run: false
+      semantic_version: 20
+    secrets:
+      MY_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      

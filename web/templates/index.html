@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Docker Host Info</title>
+  <style>
+    body {
+      background: #0f172a;
+      font-family: Inter, Arial, sans-serif;
+      color: #e5e7eb;
+      padding: 40px;
+    }
+    .card {
+      max-width: 900px;
+      margin: auto;
+      background: #020617;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    }
+    h1 {
+      color: #38bdf8;
+    }
+    ul {
+      line-height: 1.7;
+    }
+    .section {
+      margin-top: 25px;
+    }
+    .key {
+      color: #94a3b8;
+    }
+    .value {
+      color: #f8fafc;
+    }
+    code {
+      color: #22d3ee;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🚀 Docker Container Host Info</h1>
+
+  <div class="section">
+    <h3>☁️ Cloud</h3>
+    <ul>
+      <li>Provider: <code>{{.Cloud.Provider}}</code></li>
+      {{if .Cloud.Instance}}<li>Instance: {{.Cloud.Instance}}</li>{{end}}
+      {{if .Cloud.Region}}<li>Region: {{.Cloud.Region}}</li>{{end}}
+      {{if .Cloud.Zone}}<li>Zone: {{.Cloud.Zone}}</li>{{end}}
+
+      {{range $k, $v := .Cloud.Extra}}
+        <li>{{$k}}: <code>{{$v}}</code></li>
+      {{end}}
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>🖥 System</h3>
+    <ul>
+      <li><span class="key">Hostname:</span> <span class="value">{{.Hostname}}</span></li>
+      <li><span class="key">OS:</span> {{.OS}} / {{.Arch}}</li>
+      <li><span class="key">Go:</span> {{.GoVersion}}</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>🌐 Network</h3>
+    <ul>
+      {{range .IPs}}<li>IP: <code>{{.}}</code></li>{{end}}
+      {{range .MACs}}<li>MAC: <code>{{.}}</code></li>{{end}}
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>⏱ Runtime</h3>
+    <ul>
+      <li>Started: {{.StartTime}}</li>
+      <li>Now: {{.Now}}</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>🌱 Environment Variables</h3>
+    <ul>
+      {{range $k, $v := .Env}}
+      <li>{{$k}} = <code>{{$v}}</code></li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

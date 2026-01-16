@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  hostinfo:
+    image: hostinfo:latest
+    container_name: hostinfo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    environment:
+      ENV: local
+      SERVICE: hostinfo
+      PORT: 8080
+    restart: unless-stopped
