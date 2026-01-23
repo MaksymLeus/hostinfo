@@ -52,14 +52,7 @@ cd /opt/hostinfo
 chmod +x hostinfo
 ./hostinfo
 ```
-
-Service runs on:
-
-```
-http://<server-ip>:8080
-```
-
----
+Service runs on: `http://<server-ip>:8080`
 
 ## 4. systemd Service (Linux)
 

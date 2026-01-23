@@ -1,4 +1,4 @@
-# 07 — API
+# API
 
 This document defines the **hostinfo HTTP API** for programmatic access.  
 The API complements the web dashboard by exposing host, container, and cloud information as JSON.

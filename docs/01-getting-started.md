@@ -51,18 +51,18 @@ go build -o hostinfo ./cmd/server
 ```bash
 ./hostinfo
 ```
-Open your browser and visit: `http://localhost:8080`
+Open your browser and visit: **http://localhost:8080**
 
 #### Option B — 🐳 Docker Container (No Go Needed)
 **Build image**
 ```bash
-docker build -t hostinfo:latest ./docker
+docker build -t hostinfo:latest . -f ./docker/Dockerfile
 ```
 **Run container**
 ```bash
 docker run -it --rm -p 8080:8080 hostinfo:latest
 ```
-Open your browser and visit: `http://localhost:8080`
+Open your browser and visit: **http://localhost:8080**
 
 #### Option C — 🐙 Docker Compose (Services Setup)
 
@@ -76,7 +76,7 @@ docker compose up -d
 ```bash
 docker compose down
 ```
-Open your browser and visit: `http://localhost:8080`
+Open your browser and visit: **http://localhost:8080**
 
 
 ## ⚙️ Configuration Basics
@@ -96,11 +96,11 @@ After running HostInfo by any method, verify that:
 
 **✔ Web UI is up**
 
-Visit: `http://localhost:8080`
+Visit: **http://localhost:8080**
 You should see a system information dashboard.
 
 
-**✔ API responds**
+**✔ API responds** (in-progress)
 ```bash
 curl http://localhost:8080/api/v1/info | jq
 ```
@@ -130,16 +130,18 @@ rm hostinfo
 
 ## 🙋 Need More Details?
 Additional documentation is available in:
-- `02-installation.md`
-- `03-configuration.md`
-- `04-usage.md`
-- `05-api.md`
+- [`02-installation.md`](./02-installation.md)
+- [`03-usage.md`](./03-usage.md)
+- [`04-api.md`](./04-api.md)
+<!-- - `03-configuration.md` -->
 
 ## 🎉 You're Ready!
 
 You now have HostInfo running — either as a native binary or inside a Docker container.
 Next steps depend on your use case:
 
-➡ For config options → read `03-configuration.md`
-➡ For API usage → read `05-api.md`
-➡ For development → read `07-development.md`
+<!-- ➡ For config options → read `03-configuration.md` -->
+
+➡ For API usage → read [`04-api.md`](./04-api.md)
+
+➡ For development → read [`11-development.md`](./11-development.md)

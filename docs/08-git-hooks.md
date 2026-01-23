@@ -7,7 +7,7 @@ In **hostinfo**, we use two main Git hooks:
 - `pre-commit` → runs before a commit is finalized
 - `commit-msg` → validates commit messages
 
-These hooks are stored in `scripts/hooks`.
+These hooks are stored in [`scripts/hooks`](../scripts/hooks/).
 
 ## 1. Pre-Commit Hook
 
@@ -20,7 +20,7 @@ Ensures code meets quality standards before committing.
 - Optionally, build the project or test Dockerfile
 - Prevent commits if checks fail
 
-**Script path**: `scripts/hooks/pre-commit`
+**Script path**: [`scripts/hooks/pre-commit`](../scripts/hooks/pre-commit)
 
 ## 2. Commit-Message Hook
 
@@ -32,7 +32,7 @@ Enforces **Conventional Commits**.
 - Support automation tools like semantic-release
 - Prevent ambiguous commit messages
 
-**Script path**: `scripts/hooks/commit-msg`
+**Script path**: [`scripts/hooks/commit-msg`](../scripts/hooks/commit-msg)
 
 ## 3. Installing Git Hooks
 

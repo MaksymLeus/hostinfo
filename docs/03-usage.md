@@ -1,4 +1,4 @@
-# 04 — Usage
+# Usage
 
 This document describes how to run, access, and interact with the **hostinfo** application in different environments.
 
@@ -17,11 +17,8 @@ Example:
 ./hostinfo
 ```
 
-Access in browser:
+Open your browser and visit: `http://localhost:8080`
 
-```
-http://localhost:8080
-```
 
 No configuration files or environment variables are required.
 
@@ -101,11 +98,8 @@ If port configuration is supported later, recommended format:
 ./hostinfo --port 9090
 ```
 
-Access:
+Open your browser and visit: `http://localhost:9090`
 
-```
-http://localhost:9090
-```
 
 If not yet implemented, this section becomes future reserved.
 
@@ -155,4 +149,4 @@ When running in production:
 
 ## License
 
-MIT — see `LICENSE.md`.
+MIT — see [`LICENSE.md`](../LICENSE.md).

@@ -1,4 +1,4 @@
-# 05 — Architecture
+# Architecture
 
 This document outlines the architecture, execution model, core components, and cloud/container detection logic of the **hostinfo** application.
 

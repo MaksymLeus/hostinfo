@@ -61,7 +61,7 @@ hostinfo/
 └── tools/ # Helper scripts (bootstrap, dev)
 ```
 
-More details in: `07-development.md`
+More details in: [`11-development.md`](./11-development.md) 
 
 ## 🛠 Tech Stack
 
@@ -130,24 +130,18 @@ Upcoming enhancements include:
 - Swagger/OpenAPI API reference
 - Improved UI front-end
 
----
-
 ## 📜 License
 
 This project is licensed under the **MIT License**.  
 See `LICENSE.md` for full details.
-
----
 
 ## 🤝 Contributing
 
 Contributions are welcome!  
 Please see:
 
-- `docs/07-development.md`
-- `docs/09-releasing.md` (if semantic-release involved)
-
----
+- [`docs/11-development.md`](./11-development.md)
+- [`docs/09-releasing.md`](./09-releasing.md) (if semantic-release involved)
 
 ## ⭐ Summary
 

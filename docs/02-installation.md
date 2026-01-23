@@ -2,7 +2,27 @@
 
 This document describes how to install and build the **hostinfo** web application across multiple environments.
 
----
+## Table of Contents
+- [Installation](#installation)
+  - [Table of Contents](#table-of-contents)
+  - [1. 📦 Prerequisites](#1--prerequisites)
+  - [2. 🔽 Clone Repository](#2--clone-repository)
+  - [3. Backend Dependencies](#3-backend-dependencies)
+  - [4. 🛠️ Local Build Options](#4-️-local-build-options)
+    - [Option A — Using build.sh (recommended)](#option-a--using-buildsh-recommended)
+    - [Option B — Manual go build](#option-b--manual-go-build)
+  - [5. Platform-Specific Builds](#5-platform-specific-builds)
+    - [Linux (from macOS/Windows)](#linux-from-macoswindows)
+  - [6. ⚙️ Install to GOPATH](#6-️-install-to-gopath)
+  - [7. Deployment Targets](#7-deployment-targets)
+    - [Linux Server (manual)](#linux-server-manual)
+    - [systemd (optional)](#systemd-optional)
+  - [8. Docker Installation](#8-docker-installation)
+    - [Build locally:](#build-locally)
+  - [9. Docker Compose](#9-docker-compose)
+  - [10. ❗ Troubleshooting](#10--troubleshooting)
+  - [11. 🧼 Uninstallation](#11--uninstallation)
+  - [📄 License](#-license)
 
 ## 1. 📦 Prerequisites
 
@@ -58,7 +78,7 @@ Run it:
 ```bash
 ./bin/hostinfo
 ```
-Access in browser: `http://localhost:8080`
+Open your browser and visit: `http://localhost:8080`
 
 ## 5. Platform-Specific Builds
 
@@ -149,12 +169,8 @@ Run:
 ```bash
 docker run -p 8080:8080 hostinfo
 ```
+Open your browser and visit: `http://localhost:8080`
 
-Access:
-
-```
-http://localhost:8080
-```
 
 ---
 
@@ -210,4 +226,4 @@ sudo rm -f /etc/systemd/system/hostinfo.service
 
 ## 📄 License
 
-MIT — see `LICENSE.md` for details.
+MIT — see [`LICENSE.md`](../LICENSE.md) for details.

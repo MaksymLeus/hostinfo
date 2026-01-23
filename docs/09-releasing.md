@@ -43,6 +43,7 @@ v2.0.0 → breaking change
 
 Commit messages follow **Conventional Commits**:
 
+- `breaking:` → breaking change
 - `feat:` → new feature
 - `fix:` → bug fix
 - `chore:` → maintenance
@@ -70,6 +71,7 @@ git push origin feature/cloud-azure
 ### Example Commit Types
 
 ```sh
+braking: upgrade Ui
 feat: add GCP project ID detection
 fix: correct hostname parsing in docker environment
 docs: update README with docker instructions
