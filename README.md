@@ -14,10 +14,13 @@
   <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-orange?style=for-the-badge">
 </p>
 
-**HostInfo** is a lightweight Go service that exposes server/system information through both an HTML interface and a RESTful JSON API.  
+<p align="center">
+  <b>HostInfo</b> is a lightweight Go service that exposes server/system information through both an HTML interface and a RESTful JSON API.  
+</p>
+
 It’s designed for DevOps/debugging scenarios, observability dashboards, and automation.
 
-![Dashboard](./web/image.png)
+![Dashboard](docs/images/Dashboard.png)
 
 ## ✨ Features
 
@@ -40,6 +43,11 @@ Hostinfo is available as a Docker image for easy deployment.
 - **Platforms:** `linux/amd64`, `linux/arm64`
 - **Size:** ~47MB compressed
 
+# Clone 
+```sh
+git clone https://github.com/MaksymLeus/hostinfo.git
+cd  hostinfo
+```
 ### Docker Compose Run (Recommended)
 ```bash
 docker compose up -d -f ./docker/docker-compose.yml
@@ -52,14 +60,18 @@ docker run -p 8080:8080 hostinfo:latest
 
 ### From Source
 ```bash
-# Clone and build
-git clone https://github.com/MaksymLeus/hostinfo.git
-cd hostinfo
+# Build
 ./tools/build.sh
 # Run
 ./bin/hostinfo
 ```
 Access at: **http://localhost:8080**
+
+
+### Using Helm
+```bash
+helm upgrade --install hostinfo ./helm
+```
 
 For more detailed instructions on getting started, see [`docs/01-getting-started.md`](docs/01-getting-started)
 
