@@ -20,8 +20,13 @@ This document describes how to install and build the **hostinfo** web applicatio
   - [8. Docker Installation](#8-docker-installation)
     - [Build locally:](#build-locally)
   - [9. Docker Compose](#9-docker-compose)
-  - [10. ❗ Troubleshooting](#10--troubleshooting)
-  - [11. 🧼 Uninstallation](#11--uninstallation)
+  - [10. Helm Chart — Installation](#10-helm-chart--installation)
+    - [Install Release](#install-release)
+    - [Modify helm chart using values](#modify-helm-chart-using-values)
+    - [Verify](#verify)
+    - [Generate kubernetes configs](#generate-kubernetes-configs)
+  - [11. ❗ Troubleshooting](#11--troubleshooting)
+  - [12. 🧼 Uninstallation](#12--uninstallation)
   - [📄 License](#-license)
 
 ## 1. 📦 Prerequisites
@@ -188,9 +193,34 @@ Stop:
 docker compose down
 ```
 
----
+## 10. Helm Chart — Installation
 
-## 10. ❗ Troubleshooting
+<!-- ### Add Helm Repository
+helm repo add <repo-name> <repo-url>
+helm repo update -->
+
+### Install Release
+```bash
+helm upgrade --install hostinfo ./helm <repo-name>/<chart-name> \
+  --namespace <namespace> --create-namespace
+```
+### Modify helm chart using values
+```bash
+# inside ./helm/values.yaml you can see an example of how to change the helm release as you needed
+helm upgrade --install hostinfo ./helm -f ./helm/values.yaml 
+```
+
+### Verify
+kubectl get pods -n <namespace>
+kubectl get svc -n <namespace>
+
+### Generate kubernetes configs
+If you whant run using `kubectl` you can generate template using helm
+```bash
+helm template hostinfo ./helm 
+```
+
+## 11. ❗ Troubleshooting
 
 | Issue | Cause | Resolution |
 |---|---|---|
@@ -201,7 +231,7 @@ docker compose down
 
 ---
 
-## 11. 🧼 Uninstallation
+## 12. 🧼 Uninstallation
 
 Remove binary:
 
@@ -222,7 +252,13 @@ sudo systemctl disable --now hostinfo
 sudo rm -f /etc/systemd/system/hostinfo.service
 ```
 
----
+Remove helm release:
+```bash
+#Check what’s installed
+helm list -A
+#remove (uninstall) a Helm release
+helm uninstall <release-name> -n <namespace>
+```
 
 ## 📄 License
 

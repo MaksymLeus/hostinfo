@@ -1,0 +1,22 @@
+
+replicaCount: 1
+
+image:
+  repository: maximleus/hostinfo
+  tag: latest
+  pullPolicy: Always
+
+
+
+service:
+  # type: NodePort
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  # nodePort: 31001
+
+
+envs:  
+  HOSTINFO_PORT: 8080
+  HOSTINFO_ADDR: "0.0.0.0"
+  HOSTINFO_DEBUG: false
