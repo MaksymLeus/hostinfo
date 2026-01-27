@@ -35,23 +35,13 @@ Enforces **Conventional Commits**.
 **Script path**: [`scripts/hooks/commit-msg`](../scripts/hooks/commit-msg)
 
 ## 3. Installing Git Hooks
-
-### 3.1 Manual Installation
-```sh
-chmod +x ./tools/setup-hooks.sh
-chmod +x ./scripts/hooks/pre-commit
-chmod +x ./scripts/hooks/commit-msg
-```
-### 3.2 Using Makefile (optional)
-```makefile
-install-hooks:
-  chmod +x ./tools/setup-hooks.sh
-  chmod +x ./scripts/hooks/*
-	chmod +x .git/hooks/*
-  ./tools/setup-hooks.sh
-```
+Run Project Pre-Setup Script: `prepare.sh` 
 ```bash
-make install-hooks
+tools/prepare.sh
+```
+If you receive a permission error, make it executable:
+```sh
+chmod +x tools/prepare.sh
 ```
 ## 4. Workflow Diagram
 
