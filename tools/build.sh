@@ -230,7 +230,7 @@ simple_detection() {
 # Main Logic
 # ------------------------------------------------------------
 print_header
-simple_detection # Check for Go installation
+simple_detection
 
 cmd="${1:-quick}"
 case "$cmd" in
