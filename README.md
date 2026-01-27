@@ -50,7 +50,7 @@ cd  hostinfo
 ```
 ### Docker Compose Run (Recommended)
 ```bash
-docker compose up -d -f ./docker/docker-compose.yml
+docker compose -f docker/docker-compose.yml up -d
 ```
 ### Docker Run
 ```bash

@@ -95,8 +95,9 @@ setup_env() {
     else
       echo "📄 Creating default $ENV_FILE"
       cat <<EOF > "$ENV_FILE"
-APP_ENV=dev
-PORT=8080
+HOSTINFO_PORT=8080
+HOSTINFO_ADDR=0.0.0.0
+HOSTINFO_DEBUG=false
 EOF
     fi
     echo "✔ env file created"

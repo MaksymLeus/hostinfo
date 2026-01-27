@@ -8,23 +8,6 @@ Uses **Downward API only**
 - Service account
 - Container name
 
-If you later deploy to K8s, probes map directly:
-```yaml
-livenessProbe:
-  httpGet:
-    path: /healthz
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 10
-
-readinessProbe:
-  httpGet:
-    path: /healthz
-    port: 8080
-  initialDelaySeconds: 3
-  periodSeconds: 5
-```
-
 # Upgrade UI
 - Make new ui on js
 - favicon.ico 

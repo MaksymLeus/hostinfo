@@ -166,7 +166,7 @@ Hostinfo can be containerized using Docker.
 ### Build locally:
 
 ```bash
-docker build -t hostinfo . -f /docker/Dockerfile
+docker build -t hostinfo . -f docker/Dockerfile
 ```
 
 Run:
@@ -182,15 +182,15 @@ Open your browser and visit: `http://localhost:8080`
 ## 9. Docker Compose
 
 ```bash
-docker compose build -f ./docker/docker-compose.yml
-docker compose up -d
+docker compose -f docker/docker-compose.yml build 
+docker compose -f docker/docker-compose.yml up -d
 docker compose logs -f
 ```
 
 Stop:
 
 ```bash
-docker compose down
+docker compose -f docker/docker-compose.yml down
 ```
 
 ## 10. Helm Chart — Installation

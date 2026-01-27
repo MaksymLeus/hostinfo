@@ -2,20 +2,29 @@ version: "3.9"
 
 services:
   hostinfo:
-    image: hostinfo:latest
     container_name: hostinfo
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: maximleus/hostinfo:latest
+    # Uncomment to build locally instead of using pre-built image
+    # build:
+    #   context: ..
+    #   dockerfile: docker/Dockerfile
+
+    # Expose container externally, controlled by HOSTINFO_PORT
     ports:
-      - "8080:8080"
+      - "${HOSTINFO_PORT:-8080}:8080"
+    environment:
+      # ===========================================
+      # Server Configuration
+      # ===========================================
+      HOSTINFO_ADDR: "${HOSTINFO_ADDR:-0.0.0.0}"
+      HOSTINFO_PORT: "${HOSTINFO_PORT:-8080}"
+      HOSTINFO_DEBUG: "${HOSTINFO_DEBUG:-false}"
+
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
-      timeout: 3s
+      timeout: 5s
       retries: 3
-    environment:
-      ENV: local
-      SERVICE: hostinfo
-      PORT: 8080
+      start_period: 10s
+
     restart: unless-stopped
