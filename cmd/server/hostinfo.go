@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"hostinfo/internal/api"
+	"hostinfo/internal/api/middleware"
 	"hostinfo/internal/custom"
 	"hostinfo/internal/host"
 )
@@ -15,17 +16,30 @@ func main() {
 	tmpl := template.Must(template.ParseFiles("web/templates/index.html"))
 
 	// Register REST API
-	api.RegisterRoutes()
+	apiMux := http.NewServeMux()
+	api.RegisterRoutes(apiMux) // pass mux instead of using http.HandleFunc directly
+	// api.RegisterRoutes()
+
+	// Main mux
+	mainMux := http.NewServeMux()
+
+	// Mount API under /api/v1/
+
+	mainMux.Handle("/api/v1/", http.StripPrefix("/api/v1", middleware.RateLimiter(apiMux)))
 
 	// Health endpoint
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	mainMux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
 	// UI endpoint
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
 		_ = tmpl.Execute(w, host.Collect())
 	})
 
@@ -35,6 +49,6 @@ func main() {
 	addr := fmt.Sprintf("%s:%s", hostAddr, port)
 
 	fmt.Printf("Server listening on %s\n", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
+	log.Fatal(http.ListenAndServe(addr, mainMux))
 
 }

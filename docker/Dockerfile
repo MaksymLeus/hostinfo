@@ -13,13 +13,12 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy go mod files first for better caching
-COPY go.mod  ./
-# COPY go.mod go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy source code
 COPY cmd/ ./cmd/
-# COPY internal/ ./internal/
+COPY internal/ ./internal/
 
 # Build arguments for multi-platform support
 ARG TARGETOS=linux

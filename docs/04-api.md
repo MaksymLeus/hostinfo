@@ -1,206 +1,418 @@
-# API
+# 🖧 HostInfo API Documentation
+The HostInfo API provides endpoints for retrieving system information and performing network diagnostics such as ping, DNS lookup, HTTP requests, and TCP port checks. All endpoints are served under /api/v1/.
 
-This document defines the **hostinfo HTTP API** for programmatic access.  
-The API complements the web dashboard by exposing host, container, and cloud information as JSON.
+All responses are in JSON format. Errors automatically return an error field.
 
----
-
-## 1. Overview
-
-- Base URL: `/`
-- Current default: **dashboard HTML**
-- Future JSON endpoints follow `/api/v1/...`
-- Stateless and read-only
-- No authentication required by default
-
-> All endpoints are optional; failures degrade gracefully.  
-
----
-
-## 2. API Versioning
-
-Planned versioning:
-
+### Base URL
+```bash
+http://<host>:<port>/api/v1/
 ```
-/api/v1/
+- Default host: `0.0.0.0`
+- Default port: `8080`
+- Health check: `/healthz` (outside API)
+
+Request Flow Diagram (High-Level):
+```sh
+┌──────────┐
+│  Client  │
+│ (curl)   │
+└────┬─────┘
+     │ HTTP Request
+     ▼
+┌──────────────┐
+│  HTTP Router │
+│ (chi / mux)  │
+└────┬─────────┘
+     │
+     ▼
+┌────────────────────┐
+│ Rate Limit Middleware │
+│  - Per IP limiter     │
+│  - Token bucket       │
+│  - Burst support      │
+└────┬─────────────────┘
+     │
+     ├─❌ Limit exceeded
+     │    └─► 429 JSON + X-RateLimit headers
+     │
+     ▼
+┌──────────────┐
+│ API Handler  │
+│ (ping/dns/…) │
+└────┬─────────┘
+     │
+     ▼
+┌──────────────┐
+│ JSON Response│
+└──────────────┘
 ```
 
-- `v1` = initial stable API
-- Future versions: `v2`, `v3` for extensions or breaking changes
+## Rate Limiting
 
----
 
-## 3. Endpoints
+All API endpoints are protected by rate limiting per IP to prevent spam:
 
-### 3.1 `/api/v1/info`
+- Default: **15 requests per minute per IP**, burst 5 requests.
 
-Returns a complete snapshot of the current host, container, and cloud metadata.
+- Exceeding the limit returns **HTTP 429**:
+  ```json
+  {
+    "error": "rate limit exceeded"
+  }
+  ```
+- Standard headers returned for all requests:
+  | Header                  | Description                                          |
+  | ----------------------- | ---------------------------------------------------- |
+  | `X-RateLimit-Limit`     | Maximum allowed requests per minute (burst)          |
+  | `X-RateLimit-Remaining` | Number of requests left in the current window        |
+  | `X-RateLimit-Reset`     | Unix timestamp when the next token will be available |
+  
+  Example curl to see headers:
+  ```bash
+  curl -s -D - "http://localhost:8080/api/v1/ping?host=google.com" -o /dev/null
+  ```
+  Output:
+  ```http
+  HTTP/1.1 200 OK
+  X-RateLimit-Limit: 5
+  X-RateLimit-Remaining: 4
+  X-RateLimit-Reset: 1674928370
+  Content-Type: application/json
+  ```
+  
 
-**Method:** `GET`  
-**Response (JSON):**
+Example Response When Rate Limited
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+X-RateLimit-Limit: 5
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1674928370
 
+{"error":"rate limit exceeded"}
+```
+
+
+Configurable via: `internal/api/middleware/rate_limiter.go`
+```go
+var (
+    rateLimit = rate.Every(time.Minute / 15) // 15 req/min
+    burst     = 5                            // allow bursts
+)
+```
+Rate Limiter Internals (Detailed):
+```bash
+              ┌─────────────────────┐
+              │ Incoming Request IP │
+              └─────────┬───────────┘
+                        ▼
+           ┌──────────────────────────┐
+           │ clients[ip] lookup       │
+           │ map[string]*client       │
+           └─────────┬────────────────┘
+                     │
+        ┌────────────▼────────────┐
+        │ Exists?                  │
+        └──────┬──────────┬───────┘
+               │ yes      │ no
+               │          ▼
+               │   ┌────────────────┐
+               │   │ Create limiter │
+               │   │ rate + burst   │
+               │   │ lastSeen=now   │
+               │   └────────────────┘
+               ▼
+┌──────────────────────────┐
+│ limiter.Allow()          │
+│ (token bucket algorithm)│
+└─────────┬────────────────┘
+          │
+   ┌──────▼──────┐
+   │ Allowed?    │
+   └───┬────┬───┘
+       │yes │no
+       │    ▼
+       │  429 Too Many Requests
+       │  + X-RateLimit headers
+       ▼
+┌──────────────────────────┐
+│ Update headers:          │
+│ - Limit                  │
+│ - Remaining              │
+│ - Reset                  │
+└─────────┬────────────────┘
+          ▼
+┌──────────────────────────┐
+│ Forward to API handler   │
+└──────────────────────────┘
+```
+Cleanup Goroutine (Optional Diagram):
+```bash
+┌────────────────────────────┐
+│ Background Cleanup Loop    │
+│ (every 5 minutes)          │
+└─────────┬──────────────────┘
+          ▼
+┌────────────────────────────┐
+│ Iterate clients map        │
+└─────────┬──────────────────┘
+          ▼
+┌────────────────────────────┐
+│ lastSeen > TTL ?           │
+└──────┬────────────┬────────┘
+       │ yes        │ no
+       ▼            ▼
+ Delete limiter   Keep client
+```
+## Endpoints
+
+### 1. Health Check
+```bash
+GET /healthz
+```
+Response:
 ```json
 {
-  "host": {
-    "hostname": "my-host",
-    "os": "linux",
-    "arch": "amd64",
-    "uptime": "5h32m",
-    "goVersion": "go1.24"
-  },
-  "container": {
-    "id": "a1b2c3d4",
-    "runtime": "docker",
-    "uptime": "5h30m"
+  "status": "ok"
+}
+```
+Example:
+```bash
+curl -s http://localhost:8080/healthz | jq
+```
+
+### 2. Ping
+```bash
+GET /api/v1/ping?host=<hostname>
+```
+
+**Description**: Ping a host to check availability and latency.
+
+Query Parameters:
+| Parameter | Type   | Required | Description            |
+| --------- | ------ | -------- | ---------------------- |
+| host      | string | Yes      | Hostname or IP to ping |
+
+Response:
+```json
+{
+  "host": "google.com",
+  "packets_sent": 3,
+  "packets_recv": 3,
+  "loss_percent": 0,
+  "min_rtt": "12.345ms",
+  "max_rtt": "14.678ms",
+  "avg_rtt": "13.456ms"
+}
+```
+Error Response Example:
+```json
+{"error":"host parameter required"}
+```
+Curl Example:
+```sh
+curl -s "http://localhost:8080/api/v1/ping?host=google.com" | jq
+```
+### 3. DNS Lookup
+```bash
+GET /api/v1/dns?host=<hostname>
+```
+**Description**: Resolve a hostname to its IP addresses and CNAME.
+
+Query Parameters:
+| Parameter | Type   | Required | Description         |
+| --------- | ------ | -------- | ------------------- |
+| host      | string | Yes      | Hostname to resolve |
+
+Response:
+```json
+{
+  "host": "google.com",
+  "ips": ["142.250.72.238", "142.250.72.206"],
+  "cname": "google.com."
+}
+```
+Curl Example:
+```sh
+curl -s "http://localhost:8080/api/v1/dns?host=google.com" | jq
+```
+### 4. HTTP Request / Curl
+```bash
+GET /api/v1/curl?url=<url>
+```
+**Description**: Perform an HTTP GET request and return status and body.
+
+Query Parameters:
+| Parameter | Type   | Required | Description  |
+| --------- | ------ | -------- | ------------ |
+| url       | string | Yes      | URL to fetch |
+
+Response:
+```json
+{
+  "url": "https://google.com",
+  "status_code": 200,
+  "body": "<!doctype html>...."
+}
+```
+Error Response Example:
+```json
+{"error":"Get \"https://nonexistent.site\": dial tcp: lookup nonexistent.site: no such host"}
+```
+Curl Example:
+```sh
+curl -s "http://localhost:8080/api/v1/curl?url=https://google.com" | jq
+```
+### 5. TCP Port Check
+```bash
+GET /api/v1/tcp?host=<host>&port=<port>
+```
+
+**Description**: Check if a TCP port is open on a given host.
+
+Query Parameters:
+| Parameter | Type   | Required | Description    |
+| --------- | ------ | -------- | -------------- |
+| host      | string | Yes      | Hostname or IP |
+| port      | string | Yes      | Port number    |
+
+Response:
+```json
+{
+  "host": "google.com",
+  "port": "80",
+  "open": true
+}
+```
+Error Response Example:
+```json
+{
+  "host": "google.com",
+  "port": "801",
+  "open": false,
+  "error": "dial tcp 142.251.98.113:801: i/o timeout"
+}
+```
+Curl Example:
+```json
+curl -s "http://localhost:8080/api/v1/tcp?host=google.com&port=80" | jq
+```
+### 6. Host Information
+```bash
+GET /api/v1/info
+```
+**Description**: Returns general system and runtime information about the host where the service is running.
+
+Response:
+```json
+{
+  "hostname": "host-name",
+  "ips": [
+    "192.168.1.1",
+    "192.168.12.12",
+    "192.168.13.13"
+  ],
+  "macs": [
+    "62:55:44:22:g8:10",
+    "72:35:34:04:d4:10"
+  ],
+  "os": "darwin",
+  "arch": "amd64",
+  "goVersion": "go1.24.12",
+  "startTime": "2026-01-28T21:31:12+02:00",
+  "now": "2026-01-28T21:36:14+02:00",
+  "env": {
+    "COLORTERM": "truecolor",
+    "COMMAND_MODE": "unix2003"
   },
   "cloud": {
-    "provider": "aws",
-    "region": "us-east-1",
-    "availabilityZone": "us-east-1a",
-    "instanceType": "t3.micro",
-    "instanceId": "i-1234567890abcdef"
+    "provider": "local",
+    "region": "",
+    "zone": "",
+    "instance": "",
+    "extra": null
   },
-  "network": [
-    {
-      "name": "eth0",
-      "mac": "02:42:ac:11:00:02",
-      "ips": ["172.17.0.2"]
-    }
-  ],
-  "env": {
-    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-    "HOSTINFO_ENV": "production"
+  "kubernetes": {
+    "enabled": false,
+    "podName": "",
+    "podNamespace": "",
+    "podIP": "",
+    "nodeName": "",
+    "serviceAccount": "",
+    "container": ""
   }
 }
 ```
-
----
-
-### 3.2 `/api/v1/health`
-
-Returns server health and uptime.
-
-**Method:** `GET`  
-**Response:**
-
+Error Response Example:
 ```json
-{
-  "status": "ok",
-  "uptime": "5h32m",
-  "version": "1.0.0",
-  "env": "production"
-}
+{ "error": "failed to collect host info" }
 ```
-
-- Useful for monitoring / readiness probes
-- Can be extended for liveness probes
-
----
-
-### 3.3 Future Endpoints
-
-| Endpoint | Description |
-|----------|------------|
-| `/api/v1/metrics` | Prometheus-compatible metrics |
-| `/api/v1/cloud`   | Cloud metadata only |
-| `/api/v1/container` | Container info only |
-| `/api/v1/network` | Network interfaces and IPs |
-
----
-
-## 4. Request/Response Conventions
-
-- All requests: `GET`
-- JSON only
-- Response content-type:
-
-```http
-Content-Type: application/json; charset=utf-8
-```
-
-- Errors use standard HTTP codes:
-
-| Code | Meaning |
-|------|--------|
-| 200  | Success |
-| 400  | Bad request |
-| 404  | Endpoint not found |
-| 500  | Internal server error |
-
-Example error:
-
-```json
-{
-  "error": "cloud metadata not available"
-}
-```
-
----
-
-## 5. Query Parameters (Future)
-
-Potential optional query parameters:
-
-- `?format=json` → force JSON response from dashboard
-- `?fields=host,cloud` → return selected sections only
-- `?timeout=500ms` → adjust metadata probe timeout
-
----
-
-## 6. Security Considerations
-
-- No authentication required by default
-- Exposing environment variables may leak secrets
-- Recommended to run behind reverse proxy with HTTPS and optional auth
-- Ensure cloud metadata endpoints are internal-only when exposing API externally
-
----
-
-## 7. Versioning & Deprecation
-
-- All endpoints must specify API version in path (`/api/v1/...`)
-- Future breaking changes increment version number (`v2`, `v3`)
-- Deprecated endpoints respond with HTTP `410 Gone` and redirect message
-
----
-
-## 8. Rate Limiting & Performance
-
-- Currently **no rate limiting**
-- Consider implementing per-IP throttling if exposed publicly
-- Metadata probes are cached in-memory for performance
-- Requests are handled asynchronously to prevent blocking
-
----
-
-## 9. Example Usage
-
-### curl Example
-
+Curl Example:
 ```bash
-curl http://localhost:8080/api/v1/info
+curl -s "http://localhost:8080/api/v1/info" | jq
+```
+### 7. Cloud Provider Detection
+```bash
+GET /api/v1/cloud
+```
+**Description**: Detects whether the service is running in a supported cloud provider and returns cloud metadata.
+
+Response:
+```json
+{
+  "provider": "local",
+  "region": "",
+  "zone": "",
+  "instance": "",
+  "extra": null
+}
+```
+Response (Not in Cloud):
+```json
+{ "provider": "unknown" }
+```
+Error Response Example:
+```json
+{ "error": "cloud metadata service unavailable" }
+```
+Curl Example:
+```bash
+curl -s "http://localhost:8080/api/v1/cloud" | jq
+```
+### 8. Kubernetes Environment Info
+```bash
+GET /api/v1/kubernetes
+```
+**Description**: Detects whether the application is running inside a Kubernetes cluster and returns pod-level metadata.
+
+Response:
+```json
+{
+  "enabled": false,
+  "podName": "",
+  "podNamespace": "",
+  "podIP": "",
+  "nodeName": "",
+  "serviceAccount": "",
+  "container": ""
+}
+```
+Error Response Example:
+```json
+{ "error": "kubernetes API not accessible" }
+```
+Curl Example:
+```bash
+curl -s "http://localhost:8080/api/v1/kubernetes" | jq
 ```
 
-### Python Example
+## Notes / Best Practices
 
-```python
-import requests
+- All endpoints return JSON. If a parameter is missing or invalid, the response contains an error field.
 
-resp = requests.get("http://localhost:8080/api/v1/info")
-data = resp.json()
-print(data["cloud"]["provider"])
-```
+- Use `jq` for pretty-printing JSON responses:
+  ```sh
+  curl -s "http://localhost:8080/api/v1/ping?host=google.com" | jq
+  ```
 
----
-
-## 10. Logging
-
-- API access logs can be enabled
-- Standard stdout logging
-- No persistent storage
-
----
-
-## License
-
-MIT — see `LICENSE.md`.
+- Endpoints are designed for network diagnostics and monitoring. Avoid running intensive requests in high frequency on external hosts.
