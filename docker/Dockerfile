@@ -1,11 +1,14 @@
+# ===========================
 # Stage 1: Build the Go binary
-FROM golang:1.24-bookworm AS go-builder
+# ===========================
+FROM golang:1.24-alpine AS go-builder
 
 # Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git ca-certificates tzdata \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN apk add --no-cache \
+    git \
+    ca-certificates \
+    tzdata \
+    curl
 
 WORKDIR /app
 
@@ -22,19 +25,27 @@ COPY cmd/ ./cmd/
 ARG TARGETOS=linux
 ARG TARGETARCH
 
-# Build the binary for target platform
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
-    -ldflags="-s -w -X main.Version=docker" \
+# Build static binary for Alpine (musl)
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build -ldflags="-s -w -X main.Version=docker" \
     -o /app/hostinfo \
     ./cmd/server/hostinfo.go
 
-# Final stage: Debian-based runtime for proper bash support
-FROM debian:bookworm-slim
 
-# Create non-root user for security
-# Add user to tty group for PTY access (required for interactive terminal)
-RUN groupadd -g 1000 hostinfo && \
-    useradd -u 1000 -g hostinfo -G tty -s /bin/bash -m hostinfo
+# ================================
+# Stage 2: Final Alpine runtime
+# ================================
+FROM alpine:3.20
+
+# Install minimal runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    tzdata \
+    curl
+
+# Create non-root user
+RUN addgroup -g 1000 -S hostinfo && \
+    adduser -S -u 1000 -G hostinfo -s /bin/sh hostinfo
 
 WORKDIR /app
 
@@ -53,7 +64,7 @@ EXPOSE 8080
 
 # Health check using curl
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -sf http://localhost:8080/healthz || exit 1
+  CMD curl -sf http://localhost:8080/healthz || exit 1
 
 # Run the application
 ENTRYPOINT ["/app/hostinfo"]
