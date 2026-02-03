@@ -203,6 +203,7 @@ helm repo update -->
 ```bash
 helm upgrade --install hostinfo ./helm <repo-name>/<chart-name> \
   --namespace <namespace> --create-namespace
+helm upgrade --install hostinfo ./helm --namespace test --create-namespace
 ```
 ### Modify helm chart using values
 ```bash

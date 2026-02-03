@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"hostinfo/internal/custom"
 	"hostinfo/internal/host"
 
 	probing "github.com/prometheus-community/pro-bing"
@@ -14,7 +15,7 @@ import (
 
 func InfoHandler(w http.ResponseWriter, r *http.Request) {
 	info := host.Collect()
-	writeJSON(w, http.StatusOK, info)
+	custom.WriteJSON(w, http.StatusOK, info)
 }
 
 // -------------------- Ping --------------------
@@ -22,13 +23,13 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 func PingHandler(w http.ResponseWriter, r *http.Request) {
 	host := r.URL.Query().Get("host")
 	if host == "" {
-		writeJSON(w, http.StatusBadRequest, "`host` query parameter required")
+		custom.WriteJSON(w, http.StatusBadRequest, "`host` query parameter required")
 		return
 	}
 
 	pinger, err := probing.NewPinger(host)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, err.Error())
+		custom.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -37,7 +38,7 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 	pinger.SetPrivileged(false)
 
 	if err := pinger.Run(); err != nil {
-		writeJSON(w, http.StatusInternalServerError, err.Error())
+		custom.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -58,14 +59,14 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 func CurlHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {
-		writeJSON(w, http.StatusBadRequest, "`url` query parameter required")
+		custom.WriteJSON(w, http.StatusBadRequest, "`url` query parameter required")
 		return
 	}
 
 	client := http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, err.Error())
+		custom.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	defer resp.Body.Close()
@@ -83,12 +84,12 @@ func CurlHandler(w http.ResponseWriter, r *http.Request) {
 func DigHandler(w http.ResponseWriter, r *http.Request) {
 	host := r.URL.Query().Get("host")
 	if host == "" {
-		writeJSON(w, http.StatusBadRequest, "`host` query parameter required")
+		custom.WriteJSON(w, http.StatusBadRequest, "`host` query parameter required")
 		return
 	}
 	ips, err := net.LookupIP(host)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, err.Error())
+		custom.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	var ipStrs []string
@@ -110,7 +111,7 @@ func TCPHandler(w http.ResponseWriter, r *http.Request) {
 	host := r.URL.Query().Get("host")
 	port := r.URL.Query().Get("port")
 	if host == "" || port == "" {
-		writeJSON(w, http.StatusBadRequest, "`host` and `port` query parameters required")
+		custom.WriteJSON(w, http.StatusBadRequest, "`host` and `port` query parameters required")
 		return
 	}
 
@@ -133,40 +134,10 @@ func TCPHandler(w http.ResponseWriter, r *http.Request) {
 
 func CloudHandler(w http.ResponseWriter, r *http.Request) {
 	info := host.DetectCloud()
-	writeJSON(w, http.StatusOK, info)
+	custom.WriteJSON(w, http.StatusOK, info)
 }
 
 func KubernetesHandler(w http.ResponseWriter, r *http.Request) {
 	info := host.DetectKubernetes()
-	writeJSON(w, http.StatusOK, info)
-}
-
-// Standard JSON
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	var toWrite any
-
-	// Handle error vs success automatically
-	if status >= 400 {
-		switch val := v.(type) {
-		case string:
-			toWrite = map[string]string{"error": val}
-		default:
-			toWrite = map[string]any{"error": val}
-		}
-	} else {
-		switch val := v.(type) {
-		case string:
-			toWrite = map[string]string{"message": val}
-		default:
-			toWrite = val
-		}
-	}
-
-	if err := json.NewEncoder(w).Encode(toWrite); err != nil {
-		// fallback if encoding fails
-		http.Error(w, `{"error":"failed to encode JSON"}`, http.StatusInternalServerError)
-	}
+	custom.WriteJSON(w, http.StatusOK, info)
 }

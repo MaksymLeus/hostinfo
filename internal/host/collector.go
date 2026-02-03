@@ -1,30 +1,84 @@
 package host
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
+
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/load"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 var startTime = time.Now()
 
 func Collect() HostInfo {
+	now := time.Now()
+
 	return HostInfo{
-		Hostname:   getHostname(),
-		IPs:        getIPs(),
-		MACs:       getMACs(),
-		OS:         runtime.GOOS,
-		Arch:       runtime.GOARCH,
-		GoVersion:  runtime.Version(),
-		StartTime:  startTime.Format(time.RFC3339),
-		Now:        time.Now().Format(time.RFC3339),
-		Env:        getEnv(),
+		// Identity
+		Hostname: getHostname(),
+
+		// Network
+		IPs:  getIPs(),
+		MACs: getMACs(),
+
+		// System
+		OS:        runtime.GOOS,
+		Distro:    getDistro(),
+		Arch:      runtime.GOARCH,
+		GoVersion: runtime.Version(),
+
+		// Time
+		StartTime: startTime.Format(time.RFC3339),
+		UpdatedAt: now.Format(time.RFC3339),
+		Uptime:    getUptime(startTime),
+
+		// Runtime
+		Env: getEnv(),
+
+		// Hardware
+		CPU:    getCPU(),
+		Memory: getMemory(),
+		Load:   getLoad(),
+
+		// Platform
 		Cloud:      DetectCloud(),
 		Kubernetes: DetectKubernetes(),
 	}
+}
+
+func getDistro() string {
+	if runtime.GOOS != "linux" {
+		return ""
+	}
+
+	data, err := os.ReadFile("/etc/os-release")
+	if err != nil {
+		return ""
+	}
+
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.HasPrefix(line, "PRETTY_NAME=") {
+			return strings.Trim(line[13:], `"`)
+		}
+	}
+	return ""
+}
+
+func getUptime(start time.Time) string {
+	d := time.Since(start)
+
+	h := int(d.Hours())
+	m := int(d.Minutes()) % 60
+	s := int(d.Seconds()) % 60
+
+	return fmt.Sprintf("%dh %dm %ds", h, m, s)
 }
 
 func getHostname() string {
@@ -80,6 +134,9 @@ func DetectCloud() CloudInfo {
 	}
 	if azure := detectAzure(); azure.Provider != "" {
 		return azure
+	}
+	if dockerInfo := detectDocker(); dockerInfo.Provider != "" {
+		return dockerInfo
 	}
 	return CloudInfo{Provider: "local"}
 }
@@ -187,6 +244,32 @@ func detectAzure() CloudInfo {
 	}
 }
 
+func detectDocker() CloudInfo {
+	// Check /.dockerenv file
+	if _, err := os.Stat("/.dockerenv"); err != nil {
+		return CloudInfo{} // Not in Docker
+	}
+
+	// Try to read container ID from /proc/self/cgroup
+	containerID := ""
+	if data, err := os.ReadFile("/proc/self/cgroup"); err == nil {
+		lines := strings.Split(string(data), "\n")
+		for _, line := range lines {
+			parts := strings.Split(line, "/")
+			last := parts[len(parts)-1]
+			if len(last) >= 12 {
+				containerID = last
+				break
+			}
+		}
+	}
+
+	return CloudInfo{
+		Provider: "docker",
+		Instance: containerID,
+	}
+}
+
 func DetectKubernetes() KubernetesInfo {
 	// Always present in k8s
 	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
@@ -201,5 +284,46 @@ func DetectKubernetes() KubernetesInfo {
 		NodeName:       "NODE_NAME",
 		ServiceAccount: "SERVICE_ACCOUNT",
 		Container:      "CONTAINER_NAME",
+	}
+}
+
+// -------- Hardware -------- //
+func getCPU() CPUInfo {
+	cores, _ := cpu.Counts(true)
+	info, _ := cpu.Info()
+	usage, _ := cpu.Percent(0, false)
+
+	model := ""
+	if len(info) > 0 {
+		model = info[0].ModelName
+	}
+
+	return CPUInfo{
+		Cores:        cores,
+		Model:        model,
+		UsagePercent: usage[0],
+	}
+}
+
+func getMemory() MemoryInfo {
+	vm, _ := mem.VirtualMemory()
+
+	return MemoryInfo{
+		TotalMB: vm.Total / 1024 / 1024,
+		UsedMB:  vm.Used / 1024 / 1024,
+		UsedPct: vm.UsedPercent,
+	}
+}
+
+func getLoad() LoadInfo {
+	avg, err := load.Avg()
+	if err != nil {
+		return LoadInfo{}
+	}
+
+	return LoadInfo{
+		Load1:  avg.Load1,
+		Load5:  avg.Load5,
+		Load15: avg.Load15,
 	}
 }

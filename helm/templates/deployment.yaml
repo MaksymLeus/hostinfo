@@ -29,18 +29,37 @@ spec:
               value: {{ $value | quote }}
           {{- end }}
           {{- end }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           readinessProbe:
-            tcpSocket:
-              port: {{ .Values.service.port }}
+            httpGet:
+              path: {{ .Values.health_check.readinessProbe.path }} # The path to the readiness endpoint
+              port: {{ .Values.service.port }}   # The port the application is listening on
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            tcpSocket:
-              port: {{ .Values.service.port }}
+            httpGet:
+              path: {{ .Values.health_check.livenessProbe.path }} # The path to the readiness endpoint
+              port: {{ .Values.service.port }}   # The port the application is listening on
             initialDelaySeconds: 15
             periodSeconds: 20
           resources:

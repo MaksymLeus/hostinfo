@@ -9,6 +9,7 @@ import (
 	"hostinfo/internal/api"
 	"hostinfo/internal/api/middleware"
 	"hostinfo/internal/custom"
+	"hostinfo/internal/health"
 	"hostinfo/internal/host"
 )
 
@@ -23,17 +24,6 @@ func main() {
 	// Main mux
 	mainMux := http.NewServeMux()
 
-	// Mount API under /api/v1/
-
-	mainMux.Handle("/api/v1/", http.StripPrefix("/api/v1", middleware.RateLimiter(apiMux)))
-
-	// Health endpoint
-	mainMux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
-	})
-
 	// UI endpoint
 	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -42,6 +32,14 @@ func main() {
 		}
 		_ = tmpl.Execute(w, host.Collect())
 	})
+
+	// Mount API under /api/v1/
+	mainMux.Handle("/api/v1/", http.StripPrefix("/api/v1", middleware.RateLimiter(apiMux)))
+
+	// Health endpoint
+	mainMux.HandleFunc("/healthz", health.HealthHandler)
+	mainMux.HandleFunc("/healthz/live", health.LiveHandler)
+	mainMux.HandleFunc("/healthz/ready", health.ReadyHandler)
 
 	// Generate Server ADDRESS
 	port := custom.GetEnv("HOSTINFO_PORT", "8080")

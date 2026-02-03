@@ -87,11 +87,11 @@ Full project documentation is available in the [`/docs`](./docs/) directory:
 | [`00-overview.md`](./docs/00-overview.md) | Project overview, goals & scope |
 | [`01-getting-started.md`](./docs/01-getting-started.md) | Minimum requirements & quick usage |
 | [`02-installation.md`](./docs/02-installation.md) | Installation paths (binary, source, Docker) |
-| [`03-usage.md`](./docs/04-usage.md) | Web UI, CLI, API & environment vars |
-| [`04-api.md`](./docs/07-api.md) | REST API endpoints, schemas & examples |
+| [`03-usage.md`](./docs/03-usage.md) | Web UI, CLI, API & environment vars |
+| [`04-api.md`](./docs/04-api.md) | REST API endpoints, schemas & examples |
 | [`05-architecture.md`](./docs/05-architecture.md) | Internal packages, components & data flow |
-| [`06-deployment.md`](./docs/03-deployment.md) | Docker, compose, Linux, systemd & cloud deployment |
-| [`07-cloud-detection.md`](./docs/06-cloud-detection.md) | AWS/GCP/Azure metadata detection logic |
+| [`06-deployment.md`](./docs/06-deployment.md) | Docker, compose, Linux, systemd & cloud deployment |
+| [`07-cloud-detection.md`](./docs/07-cloud-detection.md) | AWS/GCP/Azure metadata detection logic |
 | [`08-git-hooks.md`](./docs/08-git-hooks.md) | Local commit enforcement & checks |
 | [`09-releasing.md`](./docs/09-releasing.md) | Semantic-release, versioning & CI/CD pipelines |
 | [`10-development.md`](./docs/10-development.md) | Contains guidelines for setting up and maintaining a local development environment, tooling requirements, recommended workflows, and environment configuration. |
@@ -101,12 +101,30 @@ Full project documentation is available in the [`/docs`](./docs/) directory:
 ✔ Ideal for open-source onboarding and maintainability
 
 
-## API (in-progress)
+## 🔌 API
+HostInfo exposes a REST API for system, cloud, and network diagnostics.
+
 ```bash
 # Health check using curl
 curl http://localhost:8080/healthz
+# Health check Liveness Probe -- using curl
+curl -s http://localhost:8080/healthz/live | jq
+# Health check Readiness Probe -- using curl
+curl -s http://localhost:8080/healthz/ready | jq
+
+# Host information
+curl -s http://localhost:8080/api/v1/info | jq
+
+# Ping a host
+curl -s "http://localhost:8080/api/v1/ping?host=google.com" | jq
+
+# DNS lookup
+curl -s "http://localhost:8080/api/v1/dns?host=google.com" | jq
+
+# TCP port check
+curl -s "http://localhost:8080/api/v1/tcp?host=google.com&port=80" | jq
 ```
-See [`docs/04-api.md`](docs/04-api.md) for complete documentation.
+📘 Full API documentation: See [`docs/04-api.md`](docs/04-api.md)
 
 ## Configuration
 
@@ -127,7 +145,7 @@ See [`docs/04-api.md`](docs/04-api.md) for complete documentation.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a [Pull requests](https://github.com/MaksymLeus/hostinfo/pulls)
    
-See [`docs/07-development.md`](docs/07-development.md) for development setup.
+See [`docs/10-development.md`](docs/10-development.md) for development setup.
 
 
 ## 📄 License

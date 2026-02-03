@@ -1,6 +1,10 @@
 package custom
 
-import "os"
+import (
+	"encoding/json"
+	"net/http"
+	"os"
+)
 
 // GetEnv retrieves the value of an environment variable or returns a default.
 //
@@ -35,4 +39,34 @@ func GetEnv(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// Standard JSON
+func WriteJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	var toWrite any
+
+	// Handle error vs success automatically
+	if status >= 400 {
+		switch val := v.(type) {
+		case string:
+			toWrite = map[string]string{"error": val}
+		default:
+			toWrite = map[string]any{"error": val}
+		}
+	} else {
+		switch val := v.(type) {
+		case string:
+			toWrite = map[string]string{"message": val}
+		default:
+			toWrite = val
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(toWrite); err != nil {
+		// fallback if encoding fails
+		http.Error(w, `{"error":"failed to encode JSON"}`, http.StatusInternalServerError)
+	}
 }

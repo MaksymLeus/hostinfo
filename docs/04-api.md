@@ -167,18 +167,64 @@ Cleanup Goroutine (Optional Diagram):
 ## Endpoints
 
 ### 1. Health Check
+Health endpoints are exposed outside `/api/v1` and are intended for:
+
+- Kubernetes probes
+
+- Load balancers
+
+- Simple service monitoring
+
+
+#### 1.1 Combined Health Check
 ```bash
 GET /healthz
 ```
+**Description**: High-level health endpoint combining liveness and readiness checks.
+Useful for manual checks and simple monitoring tools.
+
 Response:
 ```json
-{
-  "status": "ok"
-}
+{ "status": "ok" }
 ```
 Example:
 ```bash
 curl -s http://localhost:8080/healthz | jq
+```
+
+#### 1.2 Liveness Probe
+```http
+GET /healthz/live
+```
+**Description**: Indicates whether the application process is running.
+
+Response:
+```json
+{ "status": "ok" }
+```
+Example:
+```bash
+curl -s http://localhost:8080/healthz/live | jq
+```
+#### 1.3 Readiness Probe
+```http
+GET /healthz/ready
+```
+**Description**: Indicates whether the application is ready to receive traffic
+(e.g. dependencies initialized, not shutting down).
+
+Response:
+```json
+{
+  "status": "ok",
+  "checks": {
+    "uptime": "24.381354968s"
+  }
+}
+```
+Example:
+```bash
+curl -s http://localhost:8080/healthz/ready | jq
 ```
 
 ### 2. Ping
