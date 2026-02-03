@@ -462,3 +462,4 @@ curl -s "http://localhost:8080/api/v1/kubernetes" | jq
   ```
 
 - Endpoints are designed for network diagnostics and monitoring. Avoid running intensive requests in high frequency on external hosts.
+
