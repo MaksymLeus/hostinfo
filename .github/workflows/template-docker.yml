@@ -142,7 +142,14 @@ jobs:
       - name: Set Docker tags
         id: docker_tags
         run: |
-          VERSION_TAG="${{ inputs.organization }}/${{ inputs.image_name }}:${{ steps.set_version.outputs.version }}"
+          # Get the raw version
+          RAW_VERSION="${{ steps.set_version.outputs.version }}"
+          
+          # Replace '+' and other invalid chars with '-'
+          CLEAN_VERSION=$(echo "$RAW_VERSION" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          
+          VERSION_TAG="${{ inputs.organization }}/${{ inputs.image_name }}:$CLEAN_VERSION"
+          
           echo "tags=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
           if [ "${{ github.event_name }}" = "release" ] && [ "${{ github.event.action }}" = "published" ]; then
