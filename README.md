@@ -1,240 +1,152 @@
-# Go Host Info Web App
-[![Go Version](https://img.shields.io/badge/Go-1.20+-00ADD8?style=flat&logo=go)](https://golang.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<h1 align="center">hostinfo</h1>
+<p align="center">Minimal Go-based system & environment info API</p>
 
-A lightweight **Golang web application** that displays detailed runtime information about the **host, container and cloud environment**.
+<p align="center">
+  <a href="https://github.com/MaksymLeus/hostinfo/releases"><img src="https://img.shields.io/github/v/release/MaksymLeus/hostinfo?style=for-the-badge"></a>
+  <a href="https://github.com/MaksymLeus/hostinfo/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/MaksymLeus/hostinfo/ci.yml?style=for-the-badge&label=CI"></a>
+  <a href="https://hub.docker.com/r/maximleus/hostinfo"><img src="https://img.shields.io/docker/pulls/maximleus/hostinfo?style=for-the-badge"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/MaksymLeus/hostinfo?style=for-the-badge"></a>
+</p>
 
-Designed to run **as-is**:
-- locally
-- in Docker
-- on AWS / GCP / Azure
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.20+-00ADD8?style=for-the-badge&logo=go">
+  <img src="https://goreportcard.com/badge/github.com/MaksymLeus/hostinfo?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-orange?style=for-the-badge">
+</p>
 
-✅ No special permissions  
-✅ No cloud credentials  
-✅ Safe for production  
+<p align="center">
+  <b>HostInfo</b> is a lightweight Go service that exposes server/system information through both an HTML interface and a RESTful JSON API.  
+</p>
+
+It’s designed for DevOps/debugging scenarios, observability dashboards, and automation.
+
+![Dashboard](docs/images/Dashboard.png)
 
 ## ✨ Features
 
-### 🖥 Host & Container Info
-- Hostname
-- OS / Architecture
-- Go version
-- Container uptime
-- Environment variables
+- 🚀 Fast & lightweight Go server
+- 🌐 Simple web UI
+- 📡 JSON API support
+- 🐳 Docker & Compose ready
+- 🔒 Zero external dependencies
+- 📦 CI/CD & Semantic Release compatible
+- 📁 Clean repo & docs structure
 
-### ☁️ Cloud Auto-Detection (no creds)
-- AWS EC2 (instance ID, region, AZ, type)
-- Google Cloud (project, zone, machine type)
-- Azure (VM detection)
-- Local / Docker fallback
+See [`docs/00-overview.md`](docs/00-overview.md) for a complete overview of the project.
 
-### 🌐 Network
-- IP addresses
-- MAC addresses
-
-### 🎨 UI
-- Clean dark UI
-- Structured sections
-- Human-readable layout
-- Browser-friendly dashboard
-
-## 📸 Screenshot (example)
-![alt text](./web/image.png)
-
-## 📦 Prerequisites
-- **Go**: Version 1.21 or higher ([Download](https://golang.org/dl/))
-
-## 🚀 Installation
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/MaksymLeus/hostinfo.git
-cd hostinfo
-```
-### Install Dependencies
-
-#### Backend
-```bash
-go mod download
-```
-## ⚡ Quick Start
-
-### Build and Run
-
-```bash
-# Build the application
-./build.sh
-
-# Run the server
-./hostinfo
-```
-Access the application at `http://localhost:8080`
-
-## 🌐 Deployment
-
-### Linux Server
-
-```bash
-# Build for Linux
-./build.sh all
-
-# Copy to server
-scp bin/hostinfo-linux-x64 user@server:/opt/hostinfo/hostinfo
-
-# Run on server
-ssh user@server
-cd /opt/hostinfo
-./hostinfo
-```
-### systemd Service
-
-Create `/etc/systemd/system/hostinfo.service`:
-
-```ini
-[Unit]
-Description=Web Hostinfo Service
-After=network.target
-
-[Service]
-Type=simple
-User=www-data
-WorkingDirectory=/opt/hostinfo
-ExecStart=/opt/hostinfo/hostinfo
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
-
-```bash
-sudo systemctl enable hostinfo
-sudo systemctl start hostinfo
-sudo systemctl status hostinfo
-```
-
-## Preparation with Docker 🐳
+## Quick Start
 Hostinfo is available as a Docker image for easy deployment.
 
 **Image Details:**
 - **Registry:** Docker Hub ([`maximleus/hostinfo`](https://hub.docker.com/r/maximleus/hostinfo))
-- **Base Image:** `golang:1.24-alpine` 
+- **Base Image:** `debian:bookworm-slim` 
 - **Platforms:** `linux/amd64`, `linux/arm64`
-- **Size:** ~100MB compressed
+- **Size:** ~47MB compressed
 
-
-**Quick Start with Docker Compose:**
+# Clone 
+```sh
+git clone https://github.com/MaksymLeus/hostinfo.git
+cd  hostinfo
+```
+### Docker Compose Run (Recommended)
 ```bash
-# Build the image
-docker compose build
-# Start with default settings
-docker compose up -d
-# Stop
-docker compose down
-# View logs
-docker compose logs -f
+docker compose -f docker/docker-compose.yml up -d
 ```
-**Or Quick Start directly:**
+### Docker Run
 ```bash
-# Build the image
-docker build -t hostinfo .
-# Run container
-docker run -p 8080:8080 hostinfo
+docker pull maximleus/hostinfo:latest
+docker run -p 8080:8080 hostinfo:latest
 ```
-Access the application at `http://localhost:8080`
 
-## 💻 Development
+### From Source
+```bash
+# Build
+./tools/build.sh
+# Run
+./bin/hostinfo
+```
+Access at: **http://localhost:8080**
 
-### Backend Development
+
+### Using Helm
+```bash
+helm upgrade --install hostinfo ./helm
+```
+
+For more detailed instructions on getting started, see [`docs/01-getting-started.md`](docs/01-getting-started)
+
+Additional installation documentation is available in [`docs/02-installation.md`](docs/02-installation.md)
+
+
+## 📚 Documentation
+
+Full project documentation is available in the [`/docs`](./docs/) directory:
+
+| Document | Description |
+|---|---|
+| [`00-overview.md`](./docs/00-overview.md) | Project overview, goals & scope |
+| [`01-getting-started.md`](./docs/01-getting-started.md) | Minimum requirements & quick usage |
+| [`02-installation.md`](./docs/02-installation.md) | Installation paths (binary, source, Docker) |
+| [`03-usage.md`](./docs/03-usage.md) | Web UI, CLI, API & environment vars |
+| [`04-api.md`](./docs/04-api.md) | REST API endpoints, schemas & examples |
+| [`05-architecture.md`](./docs/05-architecture.md) | Internal packages, components & data flow |
+| [`06-deployment.md`](./docs/06-deployment.md) | Docker, compose, Linux, systemd & cloud deployment |
+| [`07-cloud-detection.md`](./docs/07-cloud-detection.md) | AWS/GCP/Azure metadata detection logic |
+| [`08-git-hooks.md`](./docs/08-git-hooks.md) | Local commit enforcement & checks |
+| [`09-releasing.md`](./docs/09-releasing.md) | Semantic-release, versioning & CI/CD pipelines |
+| [`10-development.md`](./docs/10-development.md) | Contains guidelines for setting up and maintaining a local development environment, tooling requirements, recommended workflows, and environment configuration. |
+
+✔ Supports developers, DevOps engineers & cloud operators  
+✔ Clean separation between **usage**, **deployment** & **internals**  
+✔ Ideal for open-source onboarding and maintainability
+
+
+## 🔌 API
+HostInfo exposes a REST API for system, cloud, and network diagnostics.
 
 ```bash
-# Run with hot reload (use air or similar)
-go run cmd/server/main.go
+# Health check using curl
+curl http://localhost:8080/healthz
+# Health check Liveness Probe -- using curl
+curl -s http://localhost:8080/healthz/live | jq
+# Health check Readiness Probe -- using curl
+curl -s http://localhost:8080/healthz/ready | jq
 
-# Run tests
-go test ./...
+# Host information
+curl -s http://localhost:8080/api/v1/info | jq
 
-# Run tests with coverage
-go test -cover ./...
+# Ping a host
+curl -s "http://localhost:8080/api/v1/ping?host=google.com" | jq
 
-# Format code
-go fmt ./...
+# DNS lookup
+curl -s "http://localhost:8080/api/v1/dns?host=google.com" | jq
 
-# Lint code
-go vet ./...
+# TCP port check
+curl -s "http://localhost:8080/api/v1/tcp?host=google.com&port=80" | jq
 ```
-### Development Workflow
+📘 Full API documentation: See [`docs/04-api.md`](docs/04-api.md)
 
-1. Start backend:
-   ```bash
-   go run cmd/server/main.go
-   ```
-2. Open `http://localhost:3000` for hot-reload development
+## Configuration
 
-### Project Structure
+### Essential Environment Variables
 
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HOSTINFO_PORT` | `8080` | Listen port |
+| `HOSTINFO_ADDR` | `0.0.0.0` | Bind address |
+| `HOSTINFO_DEBUG` | false | Basic Debug param |
 
-```text
-hostinfo
-├── .dockerignore                 # Files/folders to ignore when building Docker images
-├── .github
-│   └── workflows
-│       ├── ci.yml                # Main CI workflow: tests, lint, security
-│       ├── template-docker.yml   # Reusable Docker build & push workflow
-│       └── template-semantic-release.yml  # Reusable Semantic Release workflow
-├── .gitignore                     # Git ignore rules
-├── LICENSE.md                     # MIT license for the project
-├── README.md                      # Project overview, usage, and instructions
-├── TODO.md                         # TODO list for future development
-├── build.sh                        # Optional build script for local or CI builds
-├── cmd
-│   └── server
-│       └── hostinfo.go            # Main Go server entrypoint
-├── docker
-│   ├── Dockerfile                  # Dockerfile for building container
-│   └── docker-compose.yml          # Docker Compose for multi-service setups
-├── docs
-│   └── semantic.md                 # Documentation for semantic release workflow
-├── go.mod                          # Go module definition
-├── internal
-└── web
-    ├── image.png                   # Example image used in web UI
-    └── templates
-        ├── index.html              # Main HTML template for the host info page
-        └── index_to_update.html    # Optional template used for dynamic updates
-```
-#### Notes on structure:
-- `.github/workflows`: All CI/CD workflows are here. Reusable templates (`template-docker.yml` and `template-semantic-release.yml`) make it easy to trigger builds or releases from other workflows.
-
-- `cmd/server/hostinfo.go`: Go main entrypoint; you could add more commands in `cmd/` if needed.
-
-- `web/templates`: HTML templates for rendering your host info page.
-
-- `docker`: Contains Docker-related files. `docker-compose.yml` is optional but useful for multi-container setups.
-
-- `docs/semantic.md`: Full guide on how semantic release works in this project.
-
+<!-- See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for all options. -->
 
 ## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+5. Open a [Pull requests](https://github.com/MaksymLeus/hostinfo/pulls)
+   
+See [`docs/10-development.md`](docs/10-development.md) for development setup.
 
-### Development Guidelines
 
-- Follow Go best practices and conventions
-- Write tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting PR
-- Keep commits atomic and well-described
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
+## 📄 License
+MIT License — see [`LICENSE.md`](LICENSE.md) for details.

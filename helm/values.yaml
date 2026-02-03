@@ -1,0 +1,34 @@
+
+replicaCount: 1
+
+image:
+  # repository: maximleus/hostinfo
+  # tag: latest
+  # pullPolicy: Always
+  repository: hostinfo
+  tag: test-1.1
+  pullPolicy: Never
+
+
+
+service:
+  # type: NodePort
+  # type: ClusterIP
+  type: LoadBalancer
+  port: 8080
+  targetPort: 8080
+  # nodePort: 31001
+
+health_check:
+  readinessProbe:
+    path: /healthz/ready
+  livenessProbe:
+    path: /healthz/live
+
+
+envs:  
+  HOSTINFO_PORT: 8080
+  HOSTINFO_ADDR: "0.0.0.0"
+  HOSTINFO_DEBUG: false
+
+

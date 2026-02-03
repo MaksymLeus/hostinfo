@@ -1,0 +1,152 @@
+name: Notification Template
+
+on:
+  workflow_call:
+    inputs:
+      slack:
+        type: boolean
+        default: false
+        description: "Send notification to Slack channel"
+      telegram:
+        type: boolean
+        default: false
+        description: "Send notification via Telegram bot"
+      email:
+        type: boolean
+        default: false
+        description: "Send email notification via SMTP"
+      discord:
+        type: boolean
+        default: false
+        description: "Send Discord message via webhook"
+      teams:
+        type: boolean
+        default: false
+        description: "Send Microsoft Teams message via webhook"
+      status:
+        type: string
+        required: true
+        description: "Status text (success/failure/info)"
+      message:
+        type: string
+        default: ""
+        description: "Custom message to include"
+
+      EMAIL_SERVER_ADDRESS:
+        type: string
+        default: "smtp.gmail.com"
+        description: "email server address"
+      EMAIL_SERVER_PORT:
+        type: number
+        default: 587
+        description: "Email server port"
+
+    secrets:
+      SLACK_TOKEN:
+        required: false
+      SLACK_CHANNEL:
+        required: false
+      TELEGRAM_TOKEN:
+        required: false
+      TELEGRAM_CHAT_ID:
+        required: false
+      EMAIL_USERNAME:
+        required: false
+      EMAIL_PASSWORD:
+        required: false
+      EMAIL_TO:
+        required: false
+      DISCORD_WEBHOOK:
+        required: false
+      TEAMS_WEBHOOK:
+        required: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (needed for commit message)
+        uses: actions/checkout@v4
+
+      - name: Collect GitHub context
+        id: ctx
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=%B | head -n 1)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "actor=${{ github.actor }}" >> $GITHUB_OUTPUT
+          echo "run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          echo "commit_url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Compose message
+        id: compose
+        run: |
+          STATUS="${{ inputs.status }}"
+          MSG="📢 *CI Notification*%0A"
+          MSG="$MSG*Status:* \`${STATUS}\`%0A"
+          MSG="$MSG*Repository:* \`${{ steps.ctx.outputs.repo }}\`%0A"
+          MSG="$MSG*Branch:* \`${{ steps.ctx.outputs.branch }}\`%0A"
+          MSG="$MSG*Commit:* [\`${{ steps.ctx.outputs.short_sha }}\`](${{ steps.ctx.outputs.commit_url }})%0A"
+          MSG="$MSG*Message:* \"${{ steps.ctx.outputs.commit_msg }}\"%0A"
+          MSG="$MSG*Actor:* \`${{ steps.ctx.outputs.actor }}\`%0A"
+          MSG="$MSG*Run:* [View Workflow](${{ steps.ctx.outputs.run_url }})%0A"
+          if [ -n "${{ inputs.message }}" ]; then
+            MSG="$MSG%0A*Note:* ${{ inputs.message }}"
+          fi
+          echo "msg=$MSG" >> $GITHUB_OUTPUT
+
+      # -------------------- SLACK --------------------
+      - name: Send Slack notification
+        if: ${{ inputs.slack }}
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL }}
+          slack-message: ${{ steps.compose.outputs.msg }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_TOKEN }}
+
+      # -------------------- TELEGRAM --------------------
+      - name: Send Telegram notification
+        if: ${{ inputs.telegram }}
+        run: |
+          curl -s -X POST \
+          "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d parse_mode="Markdown" \
+          -d text="${{ steps.compose.outputs.msg }}"
+
+      # -------------------- EMAIL --------------------
+      - name: Send Email notification
+        if: ${{ inputs.email }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ inputs.EMAIL_SERVER_ADDRESS }}
+          server_port: ${{ inputs.EMAIL_SERVER_PORT }}
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "CI Notification - ${{ inputs.status }}"
+          body: ${{ inputs.message }}
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+
+      # -------------------- DISCORD --------------------
+      - name: Send Discord notification
+        if: ${{ inputs.discord }}
+        run: |
+          curl -s -H "Content-Type: application/json" \
+          -d "{\"content\": \"${{ steps.compose.outputs.msg }}\"}" \
+          "${{ secrets.DISCORD_WEBHOOK }}"
+
+      # -------------------- MICROSOFT TEAMS --------------------
+      - name: Send MS Teams notification
+        if: ${{ inputs.teams }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg text "${{ steps.compose.outputs.msg }}" \
+            '{text: $text}')
+          curl -s -H "Content-Type: application/json" \
+          -d "$PAYLOAD" \
+          "${{ secrets.TEAMS_WEBHOOK }}"
