@@ -1,12 +1,3 @@
-# Add Kubernetes
-### ☸️ Kubernetes (NO RBAC)
-Uses **Downward API only**
-- Pod name
-- Namespace
-- Pod IP
-- Node name
-- Service account
-- Container name
 
 # Upgrade UI
 - Make new ui on js
@@ -14,14 +5,7 @@ Uses **Downward API only**
 
 
 # CI
-- Docker cache
-- speed up CI
-
 Scenario B — .releaserc stored in another repo
-
-Not supported out of the box, because semantic-release always evaluates config against the current working directory (current repo codebase).
-
-BUT you can make it work by:
 
 Option 1 — Checkout config repo first
 

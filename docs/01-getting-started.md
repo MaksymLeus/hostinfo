@@ -56,7 +56,7 @@ Open your browser and visit: **http://localhost:8080**
 #### Option B — 🐳 Docker Container (No Go Needed)
 **Build image**
 ```bash
-docker build -t hostinfo:latest . -f docker/Dockerfile
+docker build -t hostinfo:latest . -f Dockerfile
 ```
 **Run container**
 ```bash
@@ -70,11 +70,11 @@ This method is useful for multi-service environments.
 
 **Start**
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker-compose.yml up -d
 ```
 **Stop**
 ```bash
-docker compose -f docker/docker-compose.yml down
+docker compose -f docker-compose.yml down
 ```
 Open your browser and visit: **http://localhost:8080**
 

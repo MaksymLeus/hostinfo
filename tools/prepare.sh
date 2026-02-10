@@ -123,8 +123,8 @@ setup_git_hooks() {
   fi
 
   # Ensure hooks directory exists
-  if [ ! -d "scripts/hooks" ]; then
-    echo "⚠ scripts/hooks directory not found — skipping hook setup"
+  if [ ! -d "tools/scripts/git_hooks" ]; then
+    echo "⚠ tools/scripts/git_hooks directory not found — skipping hook setup"
     return
   fi
 
@@ -133,12 +133,12 @@ setup_git_hooks() {
 
   
   # Set hooksPath only if different
-  if [ "$CURRENT_HOOKS_PATH" != "scripts/hooks" ]; then
-    echo "🔗 configuring core.hooksPath to scripts/hooks"
-    chmod +x scripts/hooks/*
-    git config core.hooksPath scripts/hooks
+  if [ "$CURRENT_HOOKS_PATH" != "tools/scripts/git_hooks" ]; then
+    echo "🔗 configuring core.hooksPath to tools/scripts/git_hooks"
+    chmod +x tools/scripts/git_hooks/*
+    git config core.hooksPath tools/scripts/git_hooks
   else
-    echo "> core.hooksPath already set to scripts/hooks"
+    echo "> core.hooksPath already set to tools/scripts/git_hooks"
   fi
 
   echo "✔ Git hooks installed via core.hooksPath"

@@ -51,7 +51,6 @@ cmd/server/       → main entrypoint + HTTP bootstrap
 internal/         → metadata collectors & helpers
 web/templates/    → HTML layout for dashboard
 web/image.png     → UI static asset
-docker/           → Docker + compose definitions
 .github/          → CI/CD workflows
 ```
 

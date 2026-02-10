@@ -48,17 +48,16 @@ HostInfo is structured as a simple web server with the following logical layers:
 | Runtime | ➜ Go 1.22+ |
 
 
-## 🗂 Repository Structure (High-Level)
+## 🗂 Repository Structure (High-Level) // depricated need new one
 ```bash
 hostinfo/
 ├── cmd/server # Application entrypoint
 ├── internal/ # Core internal logic
 ├── web/ # HTML templates, static assets
-├── docker/ # Docker + Compose files
 ├── docs/ # Documentation
 ├── .github/workflows/ # CI/CD pipelines
-├── scripts/hooks/ # Git hooks (pre-commit, commit-msg)
-└── tools/ # Helper scripts (bootstrap, dev)
+├── tools/ # Helper scripts (bootstrap, dev)
+└── tools/scripts/git_hooks/ # Git hooks (pre-commit, commit-msg)
 ```
 
 More details in: [`11-development.md`](./11-development.md) 

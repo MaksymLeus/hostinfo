@@ -1,5 +1,24 @@
 # ===========================
-# Stage 1: Build the Go binary
+# Stage 1: Build the Frontend
+# ===========================
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy frontend package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci --legacy-peer-deps
+
+# Copy frontend source
+COPY frontend/ ./
+
+# Build frontend
+RUN npm run build
+
+# ===========================
+# Stage 2: Build the Go binary
 # ===========================
 FROM golang:1.24-alpine AS go-builder
 
@@ -20,6 +39,10 @@ RUN go mod download
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 
+
+# Copy built frontend from previous stage
+COPY --from=frontend-builder /app/frontend/dist ./assets/frontend/
+
 # Build arguments for multi-platform support
 ARG TARGETOS=linux
 ARG TARGETARCH
@@ -32,7 +55,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 
 
 # ================================
-# Stage 2: Final Alpine runtime
+# Stage 3: Final Alpine runtime
 # ================================
 FROM alpine:3.20
 

@@ -22,7 +22,7 @@ fi
 # # Optional docker build test
 # if docker version >/dev/null 2>&1; then
 #   echo "➡ Checking Dockerfile builds..."
-#   docker build -q -f docker/Dockerfile .
+#   docker build -q -f Dockerfile .
 # fi
 
 echo "✔ Pre-commit checks passed."

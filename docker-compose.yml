@@ -6,8 +6,8 @@ services:
     image: maximleus/hostinfo:latest
     # Uncomment to build locally instead of using pre-built image
     # build:
-    #   context: ..
-    #   dockerfile: docker/Dockerfile
+    #   context: .
+    #   dockerfile: Dockerfile
 
     # Expose container externally, controlled by HOSTINFO_PORT
     ports:
