@@ -16,7 +16,7 @@ services:
       # ===========================================
       # Server Configuration
       # ===========================================
-      HOSTINFO_ADDR: "${HOSTINFO_ADDR:-0.0.0.0}"
+      HOSTINFO_HOST: "${HOSTINFO_HOST:-0.0.0.0}"
       HOSTINFO_PORT: "${HOSTINFO_PORT:-8080}"
       HOSTINFO_DEBUG: "${HOSTINFO_DEBUG:-false}"
 

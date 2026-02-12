@@ -25,7 +25,7 @@ health_check:
 
 envs:  
   HOSTINFO_PORT: 8080
-  HOSTINFO_ADDR: "0.0.0.0"
+  HOSTINFO_HOST: "0.0.0.0"
   HOSTINFO_DEBUG: false
 
 

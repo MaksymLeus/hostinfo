@@ -57,7 +57,7 @@ func (s *Server) Start() error {
 
 	addr := fmt.Sprintf(
 		"%s:%s",
-		custom.GetEnv("HOSTINFO_ADDR", "0.0.0.0"),
+		custom.GetEnv("HOSTINFO_HOST", "0.0.0.0"),
 		custom.GetEnv("HOSTINFO_PORT", "8080"),
 	)
 
@@ -102,8 +102,8 @@ func (s *Server) serveFrontend() {
 		s.serveFrontendFromFilesystem()
 		return
 	}
-	if os.Getenv("RUN_API_ONLY") == "true" {
-		log.Println("RUN_API_ONLY is true, skipping frontend serving. API will be available at /api/v1/*")
+	if os.Getenv("HOSTINFO_RUN_API_ONLY") == "true" {
+		log.Println("HOSTINFO_RUN_API_ONLY is true, skipping frontend serving. API will be available at /api/v1/*")
 	} else {
 		// Fall back to embedded frontend (for production binaries)
 		log.Println("Serving frontend from embedded files")
