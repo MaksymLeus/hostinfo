@@ -58,7 +58,7 @@ yarn-error.log*
 *.log
 
 # Database and encryption
-data/
+# data/
 .encryption_key
 *.db
 *.db-shm
