@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -129,37 +128,22 @@ func (s *Server) serveFrontendFromFilesystem() {
 
 // PROD: serve frontend from embedded FS
 func (s *Server) serveFrontendFromEmbedded() {
-	buildFS, err := fs.Sub(EmbeddedFrontend, "frontend/dist")
+	subFS, err := fs.Sub(EmbeddedFrontend, "frontend")
 	if err != nil {
-		log.Printf("Failed to access embedded frontend: %v", err)
+		log.Printf("Error accessing embedded frontend: %v", err)
 		s.serveErrorPage()
 		return
 	}
-	// check if folder exists in embedded FS
-	if _, err := fs.Stat(buildFS, "."); err != nil {
-		log.Printf("Embedded frontend not found: %v", err)
+
+	entries, err := fs.ReadDir(subFS, ".")
+	if err != nil || len(entries) == 0 {
+		log.Printf("Embedded frontend is empty or inaccessible: %v", err)
 		s.serveErrorPage()
 		return
 	}
-	log.Printf("Serving embedded frontend with CORS allowed origins: %v\n", s.allowOrigins)
-	fileServer := http.FileServer(http.FS(buildFS))
 
-	s.e.GET("/*", echo.WrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cleanPath := path.Clean(r.URL.Path)
-		if cleanPath == "/" {
-			cleanPath = "/index.html"
-		}
-
-		// Try requested file
-		if _, err := fs.Stat(buildFS, cleanPath[1:]); err == nil {
-			fileServer.ServeHTTP(w, r)
-			return
-		}
-
-		// SPA fallback → index.html
-		r.URL.Path = "/index.html"
-		fileServer.ServeHTTP(w, r)
-	})))
+	fsHandler := http.FileServer(http.FS(subFS))
+	s.e.GET("/*", echo.WrapHandler(fsHandler))
 }
 
 // Fallback page if frontend missing

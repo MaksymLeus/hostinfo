@@ -1,27 +1,29 @@
 
-# Upgrade UI
-- Make new ui on js
-- favicon.ico 
+# Upgrade Frontend
+- inject a random Party Parrot into your frontend every 1–5 minutes, like a fun Easter egg.
 
+# Upgrade Backend
+-
 
 # CI
-Scenario B — .releaserc stored in another repo
 
-Option 1 — Checkout config repo first
+ — `.releaserc` stored in another repo
 
-In workflow:
-```yaml
-- uses: actions/checkout@v4
-  with:
-    path: current
+    Option — Checkout config repo first
 
-- uses: actions/checkout@v4
-  with:
-    repository: myorg/semantic-config
-    path: semantic-config
+    In workflow:
+    ```yaml
+    - uses: actions/checkout@v4
+      with:
+        path: current
 
-- name: Use external .releaserc
-  run: cp semantic-config/.releaserc current/.releaserc
-```
+    - uses: actions/checkout@v4
+      with:
+        repository: myorg/semantic-config
+        path: semantic-config
 
-This approach is used in mono-repos and org-wide standards.
+    - name: Use external .releaserc
+      run: cp semantic-config/.releaserc current/.releaserc
+    ```
+
+    This approach is used in mono-repos and org-wide standards.

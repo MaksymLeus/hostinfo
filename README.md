@@ -74,6 +74,17 @@ helm upgrade --install hostinfo ./helm \
 
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for full deployment guide.
 
+
+## Screenshots
+
+| Network | Raw Json |
+|:---:|:---:|
+| ![db_env](docs/images/db_network.png) | ![db_raw_json](docs/images/db_raw_json.png) |
+
+| Command - Ping | Command List |
+|:---:|:---:|
+| ![nu_ping](docs/images/nu_ping.png) | ![nu_list](docs/images/nu_list_cmd.png) |
+
 ## 🔌 API Examples
 HostInfo exposes a REST API for system, cloud, and network diagnostics.
 

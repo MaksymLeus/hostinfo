@@ -38,6 +38,7 @@ RUN go mod download
 # Copy source code
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
+COPY assets/ ./assets/
 
 
 # Copy built frontend from previous stage
@@ -51,7 +52,7 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w -X main.Version=docker" \
     -o /app/hostinfo \
-    ./cmd/server/hostinfo.go
+    ./cmd/server
 
 
 # ================================
@@ -73,7 +74,6 @@ WORKDIR /app
 
 # Copy binary from builder
 COPY --from=go-builder /app/hostinfo /app/hostinfo
-COPY web ./web/
 
 # Set ownership
 RUN chown -R hostinfo:hostinfo /app

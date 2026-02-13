@@ -23,6 +23,7 @@ All configuration options can be set via environment variables.
 | `HOSTINFO_HOST` | `0.0.0.0` | Host to bind to |
 | `HOSTINFO_DEBUG` | `false` | Basic Debug param |
 | `HOSTINFO_FRONTEND_PATH` | `./frontend/dist` | Frontend build files |
+| `FF_ENVIRONMENT_VARIABLES` | `false` | return env vars if set to "true" |
 
 
 ### Example Usage

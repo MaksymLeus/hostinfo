@@ -86,7 +86,6 @@ func getHostname() string {
 }
 
 func getEnv() map[string]string {
-	// Added FF_ENABLE_ENVIERMENT_VARIABLE feature flag for security reasons
 	env := make(map[string]string)
 	for _, e := range os.Environ() {
 		kv := []rune(e)
@@ -97,6 +96,7 @@ func getEnv() map[string]string {
 			}
 		}
 	}
+	// Only return env vars if FF_ENVIRONMENT_VARIABLES is set to "true"
 	if os.Getenv("FF_ENVIRONMENT_VARIABLES") != "true" {
 		return make(map[string]string)
 	}
