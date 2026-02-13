@@ -510,7 +510,7 @@ export function ExecutionPage() {
                         className={cn(
                           "font-mono cursor-pointer transition-colors border px-3 py-1",
                           isActive
-                            ? "bg-primary text-primary-foreground border-primary"
+                            ? " text-primary border-primary"
                             : "border-border bg-muted/30 hover:bg-primary/20 hover:text-primary hover:border-primary"
                         )}
                         onClick={() => {
