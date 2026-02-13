@@ -218,6 +218,26 @@ EOF
 }
 
 #############################################
+# EMBEDDED FRONTEND SETUP
+#############################################
+setup_embedded_frontend() {
+  local TARGET_DIR="$PROJECT_HOME/assets/frontend"
+
+  log_info "📁 Ensuring embedded frontend directory exists..."
+
+  # Create directory if it doesn't exist
+  mkdir -p "$TARGET_DIR"
+
+  # Create .empty file if it doesn't exist
+  if [ ! -f "$TARGET_DIR/.empty" ]; then
+    touch "$TARGET_DIR/.empty"
+    log_success "Created $TARGET_DIR/.empty"
+  else
+    log_info ".empty file already exists"
+  fi
+}
+
+#############################################
 # GIT HOOKS SETUP
 #############################################
 
@@ -282,6 +302,7 @@ main() {
   setup_go_modules
   setup_frontend
   setup_env
+  setup_embedded_frontend
   setup_git_hooks
 
   print_next_steps
