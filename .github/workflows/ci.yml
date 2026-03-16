@@ -46,6 +46,13 @@ jobs:
       #     restore-keys: |
       #       ${{ runner.os }}-go-
 
+      - name: Add embedded frontend
+        run: |
+          echo "Adding embedded frontend..."
+          mkdir -p ./assets/frontend
+          if [ ! -f "./assets/frontend/.empty" ]; then
+            touch ./assets/frontend/.empty
+          fi
 
       - name: Run Lint
         run: |
@@ -96,7 +103,7 @@ jobs:
     needs: [Verification]
     uses: ./.github/workflows/template-docker.yml
     with:
-      dockerfile_path: "./docker/Dockerfile"
+      dockerfile_path: "./Dockerfile"
       docker_push: true
       image_name: "hostinfo"
       version: ${{ github.ref_name }}

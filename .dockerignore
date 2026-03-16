@@ -1,3 +1,64 @@
+# Git
 .git
-.github
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Documentation markdown files (not needed in container)
 *.md
+!README.md
+# Note: docs/ directory is needed for Swagger API documentation
+docs/images/
+
+# Build artifacts
+bin/
+hostinfo
+*.exe
+
+# Development files
+.env
+.env.*
+!.env.example
+
+# Test files
+*_test.go
+testdata/
+test.sh
+
+# Data files (should be mounted as volumes)
+data/
+*.db
+.encryption_key
+.hostinfo-credentials
+.hostinfo.pid
+
+# Frontend node_modules (we rebuild in Docker)
+frontend/node_modules/
+frontend/dist/
+
+# Serena/Claude config
+.serena/
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+
+# Docker compose (not needed inside container)
+docker-compose*.yml
+Dockerfile*
+
+# GitHub
+.github/
+
+# License (optional, can be included if needed)
+LICENSE

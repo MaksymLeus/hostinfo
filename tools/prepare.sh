@@ -1,12 +1,35 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 #############################################
-# CONFIG
+# GLOBAL CONFIG
 #############################################
 
 ENV_FILE=".env"
 ENV_TEMPLATE=".env.example"
+HOOKS_PATH="tools/scripts/git_hooks"
+FRONTEND_DIR="frontend"
+
+#############################################
+# LOGGING
+#############################################
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log_info()    { echo -e "${BLUE}ℹ $1${NC}"; }
+log_success() { echo -e "${GREEN}✔ $1${NC}"; }
+log_warn()    { echo -e "${YELLOW}⚠ $1${NC}"; }
+log_error()   { echo -e "${RED}✖ $1${NC}"; }
+
+#############################################
+# ERROR HANDLING
+#############################################
+
+trap 'log_error "Script failed at line $LINENO"; exit 1' ERR
 
 #############################################
 # PATH DISCOVERY (cross-platform safe)
@@ -27,58 +50,146 @@ dir=$(
 SCRIPTPATH=$dir/$(basename -- "$SCRIPTPATH") || exit
 PROJECT_HOME="$(dirname "$(dirname "$SCRIPTPATH")")"
 
-cd $PROJECT_HOME
+cd "$PROJECT_HOME"
 
 #############################################
 # HEADER
 #############################################
 
 echo "-----------------------------------------"
-echo "🚀 Preparing Go project"
-echo "Project root: $PROJECT_HOME"
+log_info "🚀 Preparing Go Project"
+log_info "Project root: $PROJECT_HOME"
 echo "-----------------------------------------"
 
 #############################################
-# CHECKS
+# VERSION UTILS
 #############################################
 
-check_go() {
-  if ! command -v go >/dev/null 2>&1; then
-    echo "❌ Go not found. Install Go first: https://go.dev/dl/"
+normalize_version() {
+  # Extract first x.y.z pattern from version string
+  echo "$1" | grep -Eo '[0-9]+(\.[0-9]+)+' | head -n1
+}
+
+version_ge() {
+  # returns 0 if $1 >= $2
+  # usage: version_ge "1.20.3" "1.18.0"
+  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+}
+
+#############################################
+# COMMAND CHECKS WITH VERSION SUPPORT
+#############################################
+require_command() {
+  local cmd="$1"
+  local message="$2"
+  local min_version="${3:-}"
+  local version_flag="${4:---version}"
+
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    log_error "$message"
     exit 1
   fi
-  echo "✔ Go version: $(go version)"
-}
 
-check_docker() {
-  if command -v docker >/dev/null 2>&1; then
-    echo "✔ Docker detected: $(docker --version)"
+  if [ -n "$min_version" ]; then
+    local raw_version
+
+    if [ "$version_flag" = "version" ]; then
+      raw_version=$("$cmd" version 2>/dev/null | head -n1)
+    else
+      raw_version=$("$cmd" "$version_flag" 2>/dev/null | head -n1)
+    fi
+
+    local current_version
+    current_version=$(normalize_version "$raw_version")
+
+    if [ -z "$current_version" ]; then
+      log_error "Unable to detect version for $cmd"
+      exit 1
+    fi
+
+    if version_ge "$current_version" "$min_version"; then
+      log_success "$cmd version $current_version (>= $min_version)"
+    else
+      log_error "$cmd version $current_version is less than required $min_version"
+      exit 1
+    fi
   else
-    echo "⚠ Docker not found (optional). Install if you plan to containerize."
+    log_success "$cmd detected"
   fi
 }
 
-check_git() {
+check_optional_command() {
+  local cmd="$1"
+  local label="$2"
+  local min_version="${3:-}"
+  local version_flag="${4:---version}"
 
-  if [ -d "$PROJECT_HOME/.git" ]; then
-    echo "✔ Git repository detected"
-  else
-    echo "⚠ Not a Git repository (skip hooks setup)"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    log_warn "$label not found (optional)"
+    return
   fi
+
+  local raw_version
+
+  if [ "$version_flag" = "version" ]; then
+    raw_version=$("$cmd" version 2>/dev/null | head -n1)
+  else
+    raw_version=$("$cmd" "$version_flag" 2>/dev/null | head -n1)
+  fi
+
+  local current_version
+  current_version=$(normalize_version "$raw_version")
+
+  if [ -n "$min_version" ] && [ -n "$current_version" ]; then
+    if version_ge "$current_version" "$min_version"; then
+      log_success "$label version $current_version (>= $min_version)"
+    else
+      log_warn "$label version $current_version is less than recommended $min_version"
+    fi
+  else
+    log_success "$label detected"
+  fi
+}
+
+check_requirements() {
+  require_command go "Go is required. Install from https://go.dev/dl/" "1.24.0" "version"
+
+  check_optional_command npm "npm" "11.6.0" "-v"
+  check_optional_command node "Node.js" "24.13.0" "-v"
+  check_optional_command docker "Docker"
 }
 
 #############################################
-# GO MODULES & DEPENDENCIES
+# GO SETUP
 #############################################
 
 setup_go_modules() {
   if [ ! -f "$PROJECT_HOME/go.mod" ]; then
-    echo "🟡 go.mod not found, initializing..."
+    log_warn "🟡 go.mod not found — initializing module"
     go mod init "$(basename "$PROJECT_HOME")"
   fi
-
-  echo "📦 Tidying Go modules..."
+  log_info "📦 Tidying Go modules..."
   go mod tidy
+
+  log_info "📦 Downloading Go module dependencies..."
+  go mod download
+
+  log_success "Go modules ready"
+}
+
+#############################################
+# FRONTEND SETUP
+#############################################
+setup_frontend() {
+  if [ -f "$PROJECT_HOME/$FRONTEND_DIR/package.json" ]; then
+    require_command npm "npm required for frontend setup"
+
+    log_info "📦 Installing frontend dependencies..."
+    (cd "$PROJECT_HOME/$FRONTEND_DIR" && npm install --silent)
+    log_success "Frontend dependencies installed"
+  else
+    log_warn "No frontend/package.json found — skipping frontend setup"
+  fi
 }
 
 #############################################
@@ -87,79 +198,114 @@ setup_go_modules() {
 
 setup_env() {
   if [ -f "$PROJECT_HOME/$ENV_FILE" ]; then
-    echo "✔ $ENV_FILE already exists"
+    log_success "$ENV_FILE already exists"
+    return
+  fi
+
+  if [ -f "$PROJECT_HOME/$ENV_TEMPLATE" ]; then
+    log_info "📄 Creating $ENV_FILE from $ENV_TEMPLATE"
+    cp "$PROJECT_HOME/$ENV_TEMPLATE" "$PROJECT_HOME/$ENV_FILE"
   else
-    if [ -f "$ENV_TEMPLATE" ]; then
-      echo "📄 Creating $ENV_FILE from $ENV_TEMPLATE"
-      cp "$ENV_TEMPLATE" "$ENV_FILE"
-    else
-      echo "📄 Creating default $ENV_FILE"
-      cat <<EOF > "$ENV_FILE"
+    log_info "📄 Creating default $ENV_FILE"
+    cat <<EOF > "$PROJECT_HOME/$ENV_FILE"
 HOSTINFO_PORT=8080
-HOSTINFO_ADDR=0.0.0.0
+HOSTINFO_HOST=0.0.0.0
 HOSTINFO_DEBUG=false
 EOF
-    fi
-    echo "✔ env file created"
+  fi
+
+  log_success "$ENV_FILE created"
+}
+
+#############################################
+# EMBEDDED FRONTEND SETUP
+#############################################
+setup_embedded_frontend() {
+  local TARGET_DIR="$PROJECT_HOME/assets/frontend"
+
+  log_info "📁 Ensuring embedded frontend directory exists..."
+
+  # Create directory if it doesn't exist
+  mkdir -p "$TARGET_DIR"
+
+  # Create .empty file if it doesn't exist
+  if [ ! -f "$TARGET_DIR/.empty" ]; then
+    touch "$TARGET_DIR/.empty"
+    log_success "Created $TARGET_DIR/.empty"
+  else
+    log_info ".empty file already exists"
   fi
 }
 
 #############################################
-# PRE-COMMIT HOOKS
+# GIT HOOKS SETUP
 #############################################
-
 
 setup_git_hooks() {
   # Check git binary
   if ! command -v git >/dev/null 2>&1; then
-    echo "⚠ git not found — skipping hook setup"
+    log_warn "Git not installed — skipping hooks"
     return
   fi
 
   # Check if we are in a git repo
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "⚠ not a git repository — skipping hook setup"
+    log_warn "Not a Git repository — skipping hooks"
     return
   fi
 
   # Ensure hooks directory exists
-  if [ ! -d "scripts/hooks" ]; then
-    echo "⚠ scripts/hooks directory not found — skipping hook setup"
+  if [ ! -d "$PROJECT_HOME/$HOOKS_PATH" ]; then
+    log_warn "Hooks directory: not found — skipping"
     return
   fi
 
-  # Check current hooksPath
   CURRENT_HOOKS_PATH=$(git config --get core.hooksPath || echo "")
 
-  
-  # Set hooksPath only if different
-  if [ "$CURRENT_HOOKS_PATH" != "scripts/hooks" ]; then
-    echo "🔗 configuring core.hooksPath to scripts/hooks"
-    chmod +x scripts/hooks/*
-    git config core.hooksPath scripts/hooks
-  else
-    echo "> core.hooksPath already set to scripts/hooks"
-  fi
+  if [ "$CURRENT_HOOKS_PATH" != "$HOOKS_PATH" ]; then
+    log_info "🔗 Configuring Git hooks path"
 
-  echo "✔ Git hooks installed via core.hooksPath"
-  echo "> Current hooksPath: $(git config core.hooksPath)"
+    if compgen -G "$PROJECT_HOME/$HOOKS_PATH/*" > /dev/null; then
+      chmod +x "$PROJECT_HOME/$HOOKS_PATH"/*
+    fi
+
+    git config core.hooksPath "$PROJECT_HOME/$HOOKS_PATH"
+    log_success "Git hooks configured"
+  else
+    log_success "Git hooks already configured"
+  fi
 }
 
+#############################################
+# POST CHECKS
+#############################################
+
+print_next_steps() {
+  echo "-----------------------------------------"
+  log_success "🎉 Preparation complete!"
+
+  if [[ ":$PATH:" != *":$(go env GOPATH)/bin:"* ]]; then
+    log_warn "Consider adding Go bin to PATH:"
+    echo "  export PATH=\"\$PATH:\$(go env GOPATH)/bin\""
+  fi
+
+  echo "-----------------------------------------"
+}
 
 #############################################
 # MAIN
 #############################################
 
-check_go
-check_docker
-check_git
-setup_go_modules
-setup_env
-setup_git_hooks
+main() {
+  check_requirements
+  
+  setup_go_modules
+  setup_frontend
+  setup_env
+  setup_embedded_frontend
+  setup_git_hooks
 
-echo "-----------------------------------------"
-echo "🎉 Preparation complete!"
-echo "Next steps:"
-[[ ":$PATH:" != *":$(go env GOPATH)/bin:"* ]] && echo "  ➜ export PATH=\"\$PATH:\$(go env GOPATH)/bin\""
-echo "  ➜ For more information, check the documentation in folder docs/*"
-echo "-----------------------------------------"
+  print_next_steps
+}
+
+main "$@"

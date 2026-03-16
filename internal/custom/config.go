@@ -41,6 +41,11 @@ func GetEnv(key, def string) string {
 	return def
 }
 
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 // Standard JSON
 func WriteJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
