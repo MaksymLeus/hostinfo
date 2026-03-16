@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/MaksymLeus/hostinfo/compare/v1.1.0...v1.2.0) (2026-03-16)
+
+
+### Features
+
+* add issue templates ([#5](https://github.com/MaksymLeus/hostinfo/issues/5)) ([4228a80](https://github.com/MaksymLeus/hostinfo/commit/4228a80a1b311f66775399b041e577fff7831ed1))
+
 # [1.1.0](https://github.com/MaksymLeus/hostinfo/compare/v1.0.0...v1.1.0) (2026-02-03)
 
 
