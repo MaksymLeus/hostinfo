@@ -6,6 +6,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// Register registers all v1 API routes
+// @title Hostinfo API v1
+// @version 1.0
+// @description Hostinfo server API documentation.
+// @BasePath /api/v1
 func Register(g *echo.Group) {
 	g.GET("/info", handlers.Info)
 	g.GET("/cloud", handlers.Cloud)

@@ -34,6 +34,7 @@ It is designed for **DevOps engineers, SREs, platform teams, automation systems,
 - 🚀 Fast & minimal Go HTTP server
 - 🌐 Clean Web dashboard
 - 📡 Versioned REST API (`/api/v1`)
+- 📚 Interactive Swagger API Documentation (`/swagger/index.html`)
 - ☁️ Cloud detection (AWS / GCP / Azure / Local)
 - 🐳 Docker & Docker Compose ready
 - ☸️ Kubernetes-ready (Helm chart included)
@@ -66,6 +67,7 @@ docker run -p 8080:8080 maximleus/hostinfo:latest
 ```
 
 Access at: **http://localhost:8080**
+Swagger UI: **http://localhost:8080/swagger/index.html**
 
 ### ☸️ Deploy with Helm
 helm upgrade --install hostinfo ./helm \
@@ -85,34 +87,10 @@ See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for full deployment guide.
 |:---:|:---:|
 | ![nu_ping](docs/images/nu_ping.png) | ![nu_list](docs/images/nu_list_cmd.png) |
 
-## 🔌 API Examples
-HostInfo exposes a REST API for system, cloud, and network diagnostics.
-
-### Health Checks
-```bash
-curl http://localhost:8080/healthz
-curl -s http://localhost:8080/healthz/live | jq
-curl -s http://localhost:8080/healthz/ready | jq
-```
-
-### Host information
-```bash
-curl -s http://localhost:8080/api/v1/info | jq
-```
-
-### Network Utilities
-```bash
-# Ping a host
-curl -s "http://localhost:8080/api/v1/ping?host=google.com" | jq
-
-# DNS lookup
-curl -s "http://localhost:8080/api/v1/dns?host=google.com" | jq
-
-# TCP port check
-curl -s "http://localhost:8080/api/v1/tcp?host=google.com&port=80" | jq
-```
-
-See [`docs/API.md`](docs/API.md) for full API reference.
+## 🔌 API Examples  & Swagger UI
+HostInfo exposes a REST API for system, cloud, and network diagnostics. 
+You can interactively test all endpoints using the built-in **Swagger UI** at:
+📌 **`http://localhost:8080/swagger/index.html`**
 
 ## ⚙️ Configuration
 
@@ -131,7 +109,6 @@ Project documentation lives inside the `/docs` directory:
 | Document           | Purpose                                 |
 | ------------------ | --------------------------------------- |
 | `OVERVIEW.md`      | Architecture, goals, internal structure |
-| `API.md`           | REST API endpoints & schemas            |
 | `CONFIGURATION.md` | Environment variables & configuration   |
 | `DEPLOYMENT.md`    | Docker, Compose, Helm, Kubernetes       |
 | `DEVELOPMENT.md`   | Local development workflow              |
@@ -147,8 +124,12 @@ Project documentation lives inside the `/docs` directory:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a [Pull requests](https://github.com/MaksymLeus/hostinfo/pulls)
+4. If you modify API endpoints, regenerate Swagger docs:
+   ```bash
+   swag init -g cmd/server/hostinfo.go --parseInternal --parseDepth 2
+   ```
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a [Pull requests](https://github.com/MaksymLeus/hostinfo/pulls)
    
 See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for development setup.
 
@@ -158,4 +139,3 @@ MIT License — see [`LICENSE.md`](LICENSE.md) for details.
 ## Support
 
 - [GitHub Issues](https://github.com/MaksymLeus/hostinfo/issues)
-- [API Documentation](docs/API.md)

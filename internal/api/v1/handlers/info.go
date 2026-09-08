@@ -14,6 +14,14 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
+// Info godoc
+// @Summary Get full host information
+// @Description Returns comprehensive details about identity, system, hardware, network, and runtime
+// @Tags info
+// @Accept json
+// @Produce json
+// @Success 200 {object} HostInfo
+// @Router /info [get]
 func Info(c echo.Context) error {
 	startTime := time.Now()
 

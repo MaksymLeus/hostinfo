@@ -13,10 +13,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	echoSwagger "github.com/swaggo/echo-swagger"
 	custom_mw "hostinfo/internal/api/middleware"
 	v1 "hostinfo/internal/api/v1"
 	"hostinfo/internal/custom"
 	"hostinfo/internal/health"
+
+	_ "hostinfo/docs"
 )
 
 // EmbeddedFrontend holds the embedded frontend files
@@ -75,6 +78,9 @@ func (s *Server) setupRoutes() {
 	s.e.GET("/healthz", health.Health)
 	s.e.GET("/healthz/live", health.Live)
 	s.e.GET("/healthz/ready", health.Ready)
+
+	// Swagger documentation route
+	s.e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// API v1
 	api := s.e.Group("/api/v1")

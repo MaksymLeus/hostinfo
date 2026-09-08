@@ -1,0 +1,376 @@
+definitions:
+  handlers.CPUInfo:
+    properties:
+      cores:
+        type: integer
+      model:
+        type: string
+      usagePercent:
+        type: number
+    type: object
+  handlers.CloudInfo:
+    properties:
+      extra:
+        additionalProperties:
+          type: string
+        type: object
+      instance:
+        type: string
+      provider:
+        type: string
+      region:
+        type: string
+      zone:
+        type: string
+    type: object
+  handlers.CurlResult:
+    properties:
+      body:
+        type: string
+      status_code:
+        type: integer
+      url:
+        type: string
+    type: object
+  handlers.DNSResult:
+    properties:
+      cname:
+        type: string
+      host:
+        type: string
+      ips:
+        items:
+          type: string
+        type: array
+    type: object
+  handlers.HostInfo:
+    properties:
+      arch:
+        type: string
+      cloud:
+        allOf:
+        - $ref: '#/definitions/handlers.CloudInfo'
+        description: Platform
+      cpu:
+        allOf:
+        - $ref: '#/definitions/handlers.CPUInfo'
+        description: Hardware
+      distro:
+        type: string
+      env:
+        additionalProperties:
+          type: string
+        description: Environment
+        type: object
+      goVersion:
+        type: string
+      hostname:
+        description: Identity
+        type: string
+      ips:
+        description: Network
+        items:
+          type: string
+        type: array
+      kubernetes:
+        $ref: '#/definitions/handlers.KubernetesInfo'
+      load:
+        $ref: '#/definitions/handlers.LoadInfo'
+      macs:
+        items:
+          type: string
+        type: array
+      memory:
+        $ref: '#/definitions/handlers.MemoryInfo'
+      os:
+        description: System
+        type: string
+      runtime:
+        $ref: '#/definitions/handlers.RuntimeInfo'
+      startTime:
+        description: Time
+        type: string
+      updatedAt:
+        type: string
+      uptime:
+        type: string
+    type: object
+  handlers.KubernetesInfo:
+    properties:
+      container:
+        type: string
+      enabled:
+        type: boolean
+      nodeName:
+        type: string
+      podIP:
+        type: string
+      podName:
+        type: string
+      podNamespace:
+        type: string
+      serviceAccount:
+        type: string
+    type: object
+  handlers.LoadInfo:
+    properties:
+      load1:
+        type: number
+      load5:
+        type: number
+      load15:
+        type: number
+    type: object
+  handlers.MemoryInfo:
+    properties:
+      totalMB:
+        type: integer
+      usedMB:
+        type: integer
+      usedPercent:
+        type: number
+    type: object
+  handlers.PingResult:
+    properties:
+      avg_rtt:
+        type: string
+      host:
+        type: string
+      loss_percent:
+        type: number
+      max_rtt:
+        type: string
+      min_rtt:
+        type: string
+      packets_recv:
+        type: integer
+      packets_sent:
+        type: integer
+    type: object
+  handlers.RuntimeInfo:
+    properties:
+      details:
+        description: Extra info, like container ID
+        type: string
+      environment:
+        description: '"kubernetes", "docker", "bare-metal"'
+        type: string
+    type: object
+  handlers.TCPResult:
+    properties:
+      error:
+        type: string
+      host:
+        type: string
+      open:
+        type: boolean
+      port:
+        type: string
+    type: object
+  health.CheckResult:
+    properties:
+      checks:
+        additionalProperties:
+          type: string
+        type: object
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /curl:
+    post:
+      consumes:
+      - application/json
+      description: Performs an HTTP GET request to the specified URL and returns the
+        response
+      parameters:
+      - description: URL to fetch
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CurlResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Perform an HTTP GET request
+      tags:
+      - commands
+  /dig:
+    post:
+      consumes:
+      - application/json
+      description: Looks up IP addresses and CNAME for the specified host
+      parameters:
+      - description: Host for DNS lookup
+        in: query
+        name: host
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DNSResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Perform a DNS lookup
+      tags:
+      - commands
+  /healthz:
+    get:
+      consumes:
+      - application/json
+      description: Returns basic service status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.CheckResult'
+      summary: Basic health check
+      tags:
+      - health
+  /healthz/live:
+    get:
+      consumes:
+      - application/json
+      description: Returns service liveness status and uptime check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.CheckResult'
+      summary: Liveness probe
+      tags:
+      - health
+  /healthz/ready:
+    get:
+      consumes:
+      - application/json
+      description: Returns service readiness status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.CheckResult'
+      summary: Readiness probe
+      tags:
+      - health
+  /info:
+    get:
+      consumes:
+      - application/json
+      description: Returns comprehensive details about identity, system, hardware,
+        network, and runtime
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HostInfo'
+      summary: Get full host information
+      tags:
+      - info
+  /kubernetes:
+    get:
+      consumes:
+      - application/json
+      description: Returns Kubernetes pod and cluster details if running inside K8s
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.KubernetesInfo'
+      summary: Get Kubernetes information
+      tags:
+      - runtime
+  /ping:
+    post:
+      consumes:
+      - application/json
+      description: Sends ICMP pings to the specified host and returns statistics
+      parameters:
+      - description: Host to ping
+        in: query
+        name: host
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PingResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Ping a host
+      tags:
+      - commands
+  /tcp:
+    post:
+      consumes:
+      - application/json
+      description: Tests a TCP connection to a host and port
+      parameters:
+      - description: Host to connect to
+        in: query
+        name: host
+        required: true
+        type: string
+      - description: Port to connect to
+        in: query
+        name: port
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TCPResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Check TCP connection
+      tags:
+      - commands
+swagger: "2.0"
