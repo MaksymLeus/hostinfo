@@ -1,0 +1,574 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/curl": {
+            "post": {
+                "description": "Performs an HTTP GET request to the specified URL and returns the response",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Perform an HTTP GET request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL to fetch",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CurlResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/dig": {
+            "post": {
+                "description": "Looks up IP addresses and CNAME for the specified host",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Perform a DNS lookup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host for DNS lookup",
+                        "name": "host",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.DNSResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "description": "Returns basic service status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Basic health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.CheckResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz/live": {
+            "get": {
+                "description": "Returns service liveness status and uptime check",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Liveness probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.CheckResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz/ready": {
+            "get": {
+                "description": "Returns service readiness status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Readiness probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.CheckResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/info": {
+            "get": {
+                "description": "Returns comprehensive details about identity, system, hardware, network, and runtime",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "info"
+                ],
+                "summary": "Get full host information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HostInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/kubernetes": {
+            "get": {
+                "description": "Returns Kubernetes pod and cluster details if running inside K8s",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "runtime"
+                ],
+                "summary": "Get Kubernetes information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.KubernetesInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "post": {
+                "description": "Sends ICMP pings to the specified host and returns statistics",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Ping a host",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host to ping",
+                        "name": "host",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.PingResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tcp": {
+            "post": {
+                "description": "Tests a TCP connection to a host and port",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commands"
+                ],
+                "summary": "Check TCP connection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host to connect to",
+                        "name": "host",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port to connect to",
+                        "name": "port",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TCPResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.CPUInfo": {
+            "type": "object",
+            "properties": {
+                "cores": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "usagePercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.CloudInfo": {
+            "type": "object",
+            "properties": {
+                "extra": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "instance": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "zone": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CurlResult": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.DNSResult": {
+            "type": "object",
+            "properties": {
+                "cname": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "ips": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "handlers.HostInfo": {
+            "type": "object",
+            "properties": {
+                "arch": {
+                    "type": "string"
+                },
+                "cloud": {
+                    "description": "Platform",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/handlers.CloudInfo"
+                        }
+                    ]
+                },
+                "cpu": {
+                    "description": "Hardware",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/handlers.CPUInfo"
+                        }
+                    ]
+                },
+                "distro": {
+                    "type": "string"
+                },
+                "env": {
+                    "description": "Environment",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "goVersion": {
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "Identity",
+                    "type": "string"
+                },
+                "ips": {
+                    "description": "Network",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kubernetes": {
+                    "$ref": "#/definitions/handlers.KubernetesInfo"
+                },
+                "load": {
+                    "$ref": "#/definitions/handlers.LoadInfo"
+                },
+                "macs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "memory": {
+                    "$ref": "#/definitions/handlers.MemoryInfo"
+                },
+                "os": {
+                    "description": "System",
+                    "type": "string"
+                },
+                "runtime": {
+                    "$ref": "#/definitions/handlers.RuntimeInfo"
+                },
+                "startTime": {
+                    "description": "Time",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "uptime": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.KubernetesInfo": {
+            "type": "object",
+            "properties": {
+                "container": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "podIP": {
+                    "type": "string"
+                },
+                "podName": {
+                    "type": "string"
+                },
+                "podNamespace": {
+                    "type": "string"
+                },
+                "serviceAccount": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.LoadInfo": {
+            "type": "object",
+            "properties": {
+                "load1": {
+                    "type": "number"
+                },
+                "load15": {
+                    "type": "number"
+                },
+                "load5": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.MemoryInfo": {
+            "type": "object",
+            "properties": {
+                "totalMB": {
+                    "type": "integer"
+                },
+                "usedMB": {
+                    "type": "integer"
+                },
+                "usedPercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.PingResult": {
+            "type": "object",
+            "properties": {
+                "avg_rtt": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "loss_percent": {
+                    "type": "number"
+                },
+                "max_rtt": {
+                    "type": "string"
+                },
+                "min_rtt": {
+                    "type": "string"
+                },
+                "packets_recv": {
+                    "type": "integer"
+                },
+                "packets_sent": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.RuntimeInfo": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "description": "Extra info, like container ID",
+                    "type": "string"
+                },
+                "environment": {
+                    "description": "\"kubernetes\", \"docker\", \"bare-metal\"",
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TCPResult": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "open": {
+                    "type": "boolean"
+                },
+                "port": {
+                    "type": "string"
+                }
+            }
+        },
+        "health.CheckResult": {
+            "type": "object",
+            "properties": {
+                "checks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

@@ -39,6 +39,7 @@ RUN go mod download
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY assets/ ./assets/
+COPY docs/ ./docs/
 
 
 # Copy built frontend from previous stage

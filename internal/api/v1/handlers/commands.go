@@ -11,6 +11,17 @@ import (
 )
 
 // -------------------- Ping --------------------
+// Ping godoc
+// @Summary Ping a host
+// @Description Sends ICMP pings to the specified host and returns statistics
+// @Tags commands
+// @Accept json
+// @Produce json
+// @Param host query string true "Host to ping"
+// @Success 200 {object} PingResult
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /ping [post]
 func Ping(c echo.Context) error {
 	hostParam := c.QueryParam("host")
 	if hostParam == "" {
@@ -43,6 +54,17 @@ func Ping(c echo.Context) error {
 }
 
 // -------------------- Curl / HTTP GET --------------------
+// Curl godoc
+// @Summary Perform an HTTP GET request
+// @Description Performs an HTTP GET request to the specified URL and returns the response
+// @Tags commands
+// @Accept json
+// @Produce json
+// @Param url query string true "URL to fetch"
+// @Success 200 {object} CurlResult
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /curl [post]
 func Curl(c echo.Context) error {
 	url := c.QueryParam("url")
 	if url == "" {
@@ -65,6 +87,17 @@ func Curl(c echo.Context) error {
 }
 
 // -------------------- Dig / DNS lookup --------------------
+// Dig godoc
+// @Summary Perform a DNS lookup
+// @Description Looks up IP addresses and CNAME for the specified host
+// @Tags commands
+// @Accept json
+// @Produce json
+// @Param host query string true "Host for DNS lookup"
+// @Success 200 {object} DNSResult
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /dig [post]
 func Dig(c echo.Context) error {
 	hostParam := c.QueryParam("host")
 	if hostParam == "" {
@@ -91,6 +124,17 @@ func Dig(c echo.Context) error {
 }
 
 // -------------------- TCP --------------------
+// TCP godoc
+// @Summary Check TCP connection
+// @Description Tests a TCP connection to a host and port
+// @Tags commands
+// @Accept json
+// @Produce json
+// @Param host query string true "Host to connect to"
+// @Param port query string true "Port to connect to"
+// @Success 200 {object} TCPResult
+// @Failure 400 {string} string "Bad Request"
+// @Router /tcp [post]
 func TCP(c echo.Context) error {
 	hostParam := c.QueryParam("host")
 	port := c.QueryParam("port")

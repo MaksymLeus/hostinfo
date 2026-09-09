@@ -9,35 +9,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// Kubernetes godoc
+// @Summary Get Kubernetes information
+// @Description Returns Kubernetes pod and cluster details if running inside K8s
+// @Tags runtime
+// @Accept json
+// @Produce json
+// @Success 200 {object} KubernetesInfo
+// @Router /kubernetes [get]
 func Kubernetes(c echo.Context) error {
 	info := DetectKubernetes()
 	return c.JSON(http.StatusOK, info)
-}
-
-func detectDocker() CloudInfo {
-	// Check /.dockerenv file
-	if _, err := os.Stat("/.dockerenv"); err != nil {
-		return CloudInfo{} // Not in Docker
-	}
-
-	// Try to read container ID from /proc/self/cgroup
-	containerID := ""
-	if data, err := os.ReadFile("/proc/self/cgroup"); err == nil {
-		lines := strings.Split(string(data), "\n")
-		for _, line := range lines {
-			parts := strings.Split(line, "/")
-			last := parts[len(parts)-1]
-			if len(last) >= 12 {
-				containerID = last
-				break
-			}
-		}
-	}
-
-	return CloudInfo{
-		Provider: "docker",
-		Instance: containerID,
-	}
 }
 
 // DetectRuntime detects if we are running in Kubernetes, Docker, or bare-metal

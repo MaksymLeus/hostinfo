@@ -8,6 +8,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// Cloud godoc
+// @Summary Detect cloud provider
+// @Description Detects if the host is running on AWS, GCP, Azure, or locally
+// @Tags cloud
+// @Accept json
+// @Produce json
+// @Success 200 {object} CloudInfo
+// @Router /cloud [get]
+
 func Cloud(c echo.Context) error {
 	info := DetectCloud()
 	return c.JSON(http.StatusOK, info)
