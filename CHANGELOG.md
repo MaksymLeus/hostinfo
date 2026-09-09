@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/MaksymLeus/hostinfo/compare/v1.2.0...v1.3.0) (2026-09-09)
+
+
+### Features
+
+* add swagger documentation and clean setup ([#7](https://github.com/MaksymLeus/hostinfo/issues/7)) ([6a38b9d](https://github.com/MaksymLeus/hostinfo/commit/6a38b9d77c38aceddefe7c384416d45d2513aee7))
+
 # [1.2.0](https://github.com/MaksymLeus/hostinfo/compare/v1.1.0...v1.2.0) (2026-03-16)
 
 
