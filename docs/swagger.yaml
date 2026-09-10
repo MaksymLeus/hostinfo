@@ -43,6 +43,21 @@ definitions:
           type: string
         type: array
     type: object
+  handlers.DiskInfo:
+    properties:
+      freeMB:
+        type: integer
+      fsType:
+        type: string
+      path:
+        type: string
+      totalMB:
+        type: integer
+      usedMB:
+        type: integer
+      usedPercent:
+        type: number
+    type: object
   handlers.HostInfo:
     properties:
       arch:
@@ -55,6 +70,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/handlers.CPUInfo'
         description: Hardware
+      disk:
+        items:
+          $ref: '#/definitions/handlers.DiskInfo'
+        type: array
       distro:
         type: string
       env:

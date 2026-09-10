@@ -10,6 +10,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
 )
@@ -51,6 +52,7 @@ func Info(c echo.Context) error {
 		CPU:    getCPU(),
 		Memory: getMemory(),
 		Load:   getLoad(),
+		Disk:   getDisk(),
 
 		// Platform
 		Cloud:      DetectCloud(),
@@ -113,6 +115,10 @@ func getEnv() map[string]string {
 
 // -------- Hardware -------- //
 func getCPU() CPUInfo {
+	return GetCPUForMetrics()
+}
+
+func GetCPUForMetrics() CPUInfo {
 	cores, _ := cpu.Counts(true)
 	info, _ := cpu.Info()
 	usage, _ := cpu.Percent(0, false)
@@ -122,15 +128,27 @@ func getCPU() CPUInfo {
 		model = info[0].ModelName
 	}
 
+	usagePercent := 0.0
+	if len(usage) > 0 {
+		usagePercent = usage[0]
+	}
+
 	return CPUInfo{
 		Cores:        cores,
 		Model:        model,
-		UsagePercent: usage[0],
+		UsagePercent: usagePercent,
 	}
 }
 
 func getMemory() MemoryInfo {
+	return GetMemoryForMetrics()
+}
+
+func GetMemoryForMetrics() MemoryInfo {
 	vm, _ := mem.VirtualMemory()
+	if vm == nil {
+		return MemoryInfo{}
+	}
 
 	return MemoryInfo{
 		TotalMB: vm.Total / 1024 / 1024,
@@ -150,4 +168,52 @@ func getLoad() LoadInfo {
 		Load5:  avg.Load5,
 		Load15: avg.Load15,
 	}
+}
+
+// -------- Disk -------- //
+func getDisk() []DiskInfo {
+	return GetDiskForMetrics()
+}
+
+func GetDiskForMetrics() []DiskInfo {
+	var disks []DiskInfo
+
+	partitions, err := disk.Partitions(false)
+	if err != nil {
+		return disks
+	}
+
+	for _, p := range partitions {
+		// Skip virtual/loop/docker filesystems to keep output clean
+		if isIgnoredFilesystem(p.Fstype) {
+			continue
+		}
+
+		usage, err := disk.Usage(p.Mountpoint)
+		if err != nil {
+			continue
+		}
+
+		disks = append(disks, DiskInfo{
+			Path:        p.Mountpoint,
+			FSType:      p.Fstype,
+			TotalMB:     usage.Total / 1024 / 1024,
+			FreeMB:      usage.Free / 1024 / 1024,
+			UsedMB:      usage.Used / 1024 / 1024,
+			UsedPercent: usage.UsedPercent,
+		})
+	}
+
+	return disks
+}
+
+func isIgnoredFilesystem(fstype string) bool {
+	ignored := map[string]bool{
+		"squashfs": true,
+		"tmpfs":    true,
+		"devtmpfs": true,
+		"overlay":  true,
+		"aufs":     true,
+	}
+	return ignored[fstype]
 }

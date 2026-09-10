@@ -67,13 +67,15 @@ docker run -p 8080:8080 maximleus/hostinfo:latest
 ```
 
 Access at: **http://localhost:8080**
+
 Swagger UI: **http://localhost:8080/swagger/index.html**
 
 ### ☸️ Deploy with Helm
+```bash
 helm upgrade --install hostinfo ./helm \
   --namespace hostinfo \
   --create-namespace
-
+```
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for full deployment guide.
 
 

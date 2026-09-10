@@ -26,6 +26,7 @@ type HostInfo struct {
 	CPU    CPUInfo    `json:"cpu"`
 	Memory MemoryInfo `json:"memory"`
 	Load   LoadInfo   `json:"load"`
+	Disk   []DiskInfo `json:"disk"`
 
 	// Platform
 	Cloud      CloudInfo      `json:"cloud,omitempty"`
@@ -73,6 +74,15 @@ type LoadInfo struct {
 	Load1  float64 `json:"load1"`
 	Load5  float64 `json:"load5"`
 	Load15 float64 `json:"load15"`
+}
+
+type DiskInfo struct {
+	Path        string  `json:"path"`
+	FSType      string  `json:"fsType"`
+	TotalMB     uint64  `json:"totalMB"`
+	FreeMB      uint64  `json:"freeMB"`
+	UsedMB      uint64  `json:"usedMB"`
+	UsedPercent float64 `json:"usedPercent"`
 }
 
 // -------------------- Commands -------------------- \\

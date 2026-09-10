@@ -82,19 +82,6 @@ hostinfo/
 │       └── hostinfo.go
 ├── docker-compose.yml
 ├── docs
-│   ├── 00-overview.md
-│   ├── 04-api.md
-│   ├── 05-architecture.md
-│   ├── 07-cloud-detection.md
-│   ├── 09-releasing.md
-│   ├── CONFIGURATION.md
-│   ├── DEPLOYMENT.md
-│   ├── DEVELOPMENT.md
-│   ├── TODO.md
-│   ├── images
-│   │   └── Dashboard.png
-│   ├── tdl.md
-│   └── troubleshooting.md
 ├── frontend
 │   └── assets
 ├── go.mod

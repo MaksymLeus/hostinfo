@@ -377,6 +377,29 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.DiskInfo": {
+            "type": "object",
+            "properties": {
+                "freeMB": {
+                    "type": "integer"
+                },
+                "fsType": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "totalMB": {
+                    "type": "integer"
+                },
+                "usedMB": {
+                    "type": "integer"
+                },
+                "usedPercent": {
+                    "type": "number"
+                }
+            }
+        },
         "handlers.HostInfo": {
             "type": "object",
             "properties": {
@@ -398,6 +421,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.CPUInfo"
                         }
                     ]
+                },
+                "disk": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.DiskInfo"
+                    }
                 },
                 "distro": {
                     "type": "string"

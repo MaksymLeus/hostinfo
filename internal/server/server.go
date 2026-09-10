@@ -12,12 +12,15 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
 	custom_mw "hostinfo/internal/api/middleware"
 	v1 "hostinfo/internal/api/v1"
 	"hostinfo/internal/custom"
 	"hostinfo/internal/health"
+	"hostinfo/internal/metrics"
 
 	_ "hostinfo/docs"
 )
@@ -78,6 +81,12 @@ func (s *Server) setupRoutes() {
 	s.e.GET("/healthz", health.Health)
 	s.e.GET("/healthz/live", health.Live)
 	s.e.GET("/healthz/ready", health.Ready)
+
+	// Prometheus Metrics endpoint
+	collector := metrics.NewHostInfoCollector()
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(collector)
+	s.e.GET("/metrics", echo.WrapHandler(promhttp.HandlerFor(reg, promhttp.HandlerOpts{})))
 
 	// Swagger documentation route
 	s.e.GET("/swagger/*", echoSwagger.WrapHandler)
