@@ -15,6 +15,7 @@ func Register(g *echo.Group) {
 	g.GET("/info", handlers.Info)
 	g.GET("/cloud", handlers.Cloud)
 	g.GET("/kubernetes", handlers.Kubernetes)
+	// g.GET("/containers", handlers.Containers)
 
 	g.POST("/ping", handlers.Ping)
 	g.POST("/curl", handlers.Curl)

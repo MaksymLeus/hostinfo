@@ -23,6 +23,25 @@ definitions:
       zone:
         type: string
     type: object
+  handlers.ContainerInfo:
+    properties:
+      created:
+        type: integer
+      id:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      ports:
+        items:
+          type: string
+        type: array
+      state:
+        type: string
+      status:
+        type: string
+    type: object
   handlers.CurlResult:
     properties:
       body:
@@ -66,6 +85,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/handlers.CloudInfo'
         description: Platform
+      containers:
+        items:
+          $ref: '#/definitions/handlers.ContainerInfo'
+        type: array
       cpu:
         allOf:
         - $ref: '#/definitions/handlers.CPUInfo'
@@ -198,6 +221,24 @@ definitions:
 info:
   contact: {}
 paths:
+  /containers:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of running Docker containers if the Docker socket
+        is mounted
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.ContainerInfo'
+            type: array
+      summary: List local Docker containers
+      tags:
+      - runtime
   /curl:
     post:
       consumes:

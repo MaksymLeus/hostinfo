@@ -58,6 +58,7 @@ func Info(c echo.Context) error {
 		Cloud:      DetectCloud(),
 		Runtime:    DetectRuntime(),
 		Kubernetes: DetectKubernetes(),
+		Containers: getLocalContainers(),
 	})
 }
 

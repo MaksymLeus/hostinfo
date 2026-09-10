@@ -24,8 +24,12 @@ All configuration options can be set via environment variables.
 | `HOSTINFO_DEBUG` | `false` | Basic Debug param |
 | `HOSTINFO_FRONTEND_PATH` | `./frontend/dist` | Frontend build files |
 | `FF_ENVIRONMENT_VARIABLES` | `false` | return env vars if set to "true" |
-
-
+| `HOSTINFO_ENABLE_ALERTS` |	`false` |	Set to true to turn on the background alert watcher |
+| `ALERT_WEBHOOK_URL` |	"" |	Destination URL for alert POST requests |
+| `ALERT_CPU_THRESHOLD` |	`90.0` |	CPU percentage threshold to trigger alert |
+| `ALERT_MEM_THRESHOLD` |	`90.0` |	Memory percentage threshold to trigger alert |
+| `ALERT_CHECK_INTERVAL_SEC` | `60` |	How often to check metrics in seconds |
+ 
 ### Example Usage
 
 ```bash

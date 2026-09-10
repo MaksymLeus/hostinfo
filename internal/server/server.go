@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"hostinfo/internal/alert"
 	custom_mw "hostinfo/internal/api/middleware"
 	v1 "hostinfo/internal/api/v1"
 	"hostinfo/internal/custom"
@@ -69,6 +70,9 @@ func (s *Server) Start() error {
 	log.Printf("Server listening on http://%s", addr)
 	log.Printf("Frontend path: %s", s.FrontendPath)
 	log.Printf("CORS allowed origins: %v", s.allowOrigins)
+
+	// Start background alert watcher
+	alert.StartAlertWatcher()
 
 	s.serveFrontend()
 

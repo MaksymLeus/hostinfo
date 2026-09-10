@@ -29,9 +29,10 @@ type HostInfo struct {
 	Disk   []DiskInfo `json:"disk"`
 
 	// Platform
-	Cloud      CloudInfo      `json:"cloud,omitempty"`
-	Runtime    RuntimeInfo    `json:"runtime,omitempty"`
-	Kubernetes KubernetesInfo `json:"kubernetes,omitempty"`
+	Cloud      CloudInfo       `json:"cloud,omitempty"`
+	Runtime    RuntimeInfo     `json:"runtime,omitempty"`
+	Kubernetes KubernetesInfo  `json:"kubernetes,omitempty"`
+	Containers []ContainerInfo `json:"containers,omitempty"`
 }
 
 type CloudInfo struct {
@@ -50,6 +51,17 @@ type KubernetesInfo struct {
 	NodeName       string `json:"nodeName"`
 	ServiceAccount string `json:"serviceAccount"`
 	Container      string `json:"container"`
+}
+
+// Add ContainerInfo struct
+type ContainerInfo struct {
+	ID      string   `json:"id"`
+	Name    string   `json:"name"`
+	Image   string   `json:"image"`
+	State   string   `json:"state"`
+	Status  string   `json:"status"`
+	Created int64    `json:"created"`
+	Ports   []string `json:"ports"`
 }
 
 // RuntimeInfo represents the detected runtime environment

@@ -34,12 +34,10 @@ It is designed for **DevOps engineers, SREs, platform teams, automation systems,
 - 🚀 Fast & minimal Go HTTP server
 - 🌐 Clean Web dashboard
 - 📡 Versioned REST API (`/api/v1`)
+- 📊 Prometheus Metrics endpoint (`/metrics`)
+- 🔔 Webhook / Alerting notifications for high CPU/Memory
 - 📚 Interactive Swagger API Documentation (`/swagger/index.html`)
 - ☁️ Cloud detection (AWS / GCP / Azure / Local)
-- 🐳 Docker & Docker Compose ready
-- ☸️ Kubernetes-ready (Helm chart included)
-- 🔒 Zero external runtime dependencies
-- 🩺 Liveness & readiness probes
 - 🧱 Clean layered architecture
 - 📚 Structured documentation
 

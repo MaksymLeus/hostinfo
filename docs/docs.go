@@ -15,6 +15,32 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/containers": {
+            "get": {
+                "description": "Returns a list of running Docker containers if the Docker socket is mounted",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "runtime"
+                ],
+                "summary": "List local Docker containers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.ContainerInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/curl": {
             "post": {
                 "description": "Performs an HTTP GET request to the specified URL and returns the response",
@@ -346,6 +372,35 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ContainerInfo": {
+            "type": "object",
+            "properties": {
+                "created": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "state": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.CurlResult": {
             "type": "object",
             "properties": {
@@ -413,6 +468,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.CloudInfo"
                         }
                     ]
+                },
+                "containers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ContainerInfo"
+                    }
                 },
                 "cpu": {
                     "description": "Hardware",
