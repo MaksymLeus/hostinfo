@@ -27,6 +27,7 @@ type HostInfo struct {
 	Memory MemoryInfo `json:"memory"`
 	Load   LoadInfo   `json:"load"`
 	Disk   []DiskInfo `json:"disk"`
+	Net    []NetInfo  `json:"net"`
 
 	// Platform
 	Cloud      CloudInfo       `json:"cloud,omitempty"`
@@ -95,6 +96,17 @@ type DiskInfo struct {
 	FreeMB      uint64  `json:"freeMB"`
 	UsedMB      uint64  `json:"usedMB"`
 	UsedPercent float64 `json:"usedPercent"`
+}
+
+type NetInfo struct {
+	Name        string   `json:"name"`
+	Addrs       []string `json:"addrs"`
+	BytesSent   uint64   `json:"bytesSent"`
+	BytesRecv   uint64   `json:"bytesRecv"`
+	PacketsSent uint64   `json:"packetsSent"`
+	PacketsRecv uint64   `json:"packetsRecv"`
+	ErrorsIn    uint64   `json:"errorsIn"`
+	ErrorsOut   uint64   `json:"errorsOut"`
 }
 
 // -------------------- Commands -------------------- \\

@@ -71,8 +71,9 @@ func (s *Server) Start() error {
 	log.Printf("Frontend path: %s", s.FrontendPath)
 	log.Printf("CORS allowed origins: %v", s.allowOrigins)
 
-	// Start background alert watcher
+	// Start background workers
 	alert.StartAlertWatcher()
+	metrics.StartHistoryCollector()
 
 	s.serveFrontend()
 

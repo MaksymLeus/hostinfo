@@ -1,10 +1,13 @@
 package metrics
 
 import (
-	"hostinfo/internal/api/v1/handlers"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/mem"
+	gopsnet "github.com/shirou/gopsutil/v3/net"
 )
 
 type HostInfoCollector struct {
@@ -12,6 +15,8 @@ type HostInfoCollector struct {
 	cpuUsageMetric *prometheus.Desc
 	memoryUsage    *prometheus.Desc
 	diskUsage      *prometheus.Desc
+	netBytesSent   *prometheus.Desc
+	netBytesRecv   *prometheus.Desc
 }
 
 var startTime = time.Now()
@@ -38,6 +43,16 @@ func NewHostInfoCollector() *HostInfoCollector {
 			"Disk usage percentage by mount path",
 			[]string{"path", "fstype"}, nil,
 		),
+		netBytesSent: prometheus.NewDesc(
+			"hostinfo_net_bytes_sent_total",
+			"Total network bytes sent by interface",
+			[]string{"interface"}, nil,
+		),
+		netBytesRecv: prometheus.NewDesc(
+			"hostinfo_net_bytes_recv_total",
+			"Total network bytes received by interface",
+			[]string{"interface"}, nil,
+		),
 	}
 }
 
@@ -46,6 +61,8 @@ func (c *HostInfoCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.cpuUsageMetric
 	ch <- c.memoryUsage
 	ch <- c.diskUsage
+	ch <- c.netBytesSent
+	ch <- c.netBytesRecv
 }
 
 func (c *HostInfoCollector) Collect(ch chan<- prometheus.Metric) {
@@ -57,30 +74,69 @@ func (c *HostInfoCollector) Collect(ch chan<- prometheus.Metric) {
 	)
 
 	// 2. CPU Usage
-	cpuInfo := handlers.GetCPUForMetrics() // We'll add this helper below, or calculate it
+	cpuUsage := 0.0
+	if usage, err := cpu.Percent(0, false); err == nil && len(usage) > 0 {
+		cpuUsage = usage[0]
+	}
 	ch <- prometheus.MustNewConstMetric(
 		c.cpuUsageMetric,
 		prometheus.GaugeValue,
-		cpuInfo.UsagePercent,
+		cpuUsage,
 	)
 
 	// 3. Memory Usage
-	memInfo := handlers.GetMemoryForMetrics()
-	ch <- prometheus.MustNewConstMetric(
-		c.memoryUsage,
-		prometheus.GaugeValue,
-		float64(memInfo.UsedMB)*1024*1024,
-	)
-
-	// 4. Disk Usage
-	disks := handlers.GetDiskForMetrics()
-	for _, d := range disks {
+	if vm, err := mem.VirtualMemory(); err == nil && vm != nil {
 		ch <- prometheus.MustNewConstMetric(
-			c.diskUsage,
+			c.memoryUsage,
 			prometheus.GaugeValue,
-			d.UsedPercent,
-			d.Path,
-			d.FSType,
+			float64(vm.Used),
 		)
 	}
+
+	// 4. Disk Usage
+	if partitions, err := disk.Partitions(false); err == nil {
+		for _, p := range partitions {
+			if isIgnoredFilesystem(p.Fstype) {
+				continue
+			}
+			if usage, err := disk.Usage(p.Mountpoint); err == nil {
+				ch <- prometheus.MustNewConstMetric(
+					c.diskUsage,
+					prometheus.GaugeValue,
+					usage.UsedPercent,
+					p.Mountpoint,
+					p.Fstype,
+				)
+			}
+		}
+	}
+
+	// 5. Network I/O
+	if ioCounters, err := gopsnet.IOCounters(true); err == nil {
+		for _, io := range ioCounters {
+			ch <- prometheus.MustNewConstMetric(
+				c.netBytesSent,
+				prometheus.CounterValue,
+				float64(io.BytesSent),
+				io.Name,
+			)
+			ch <- prometheus.MustNewConstMetric(
+				c.netBytesRecv,
+				prometheus.CounterValue,
+				float64(io.BytesRecv),
+				io.Name,
+			)
+		}
+	}
+}
+
+func isIgnoredFilesystem(fstype string) bool {
+	ignored := map[string]bool{
+		"squashfs": true,
+		"tmpfs":    true,
+		"devtmpfs": true,
+		"overlay":  true,
+		"aufs":     true,
+	}
+	return ignored[fstype]
 }

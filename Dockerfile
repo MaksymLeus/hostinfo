@@ -7,20 +7,17 @@ WORKDIR /app/frontend
 
 # Copy frontend package files
 COPY frontend/package*.json ./
-
 # Install dependencies
 RUN npm ci --legacy-peer-deps
-
 # Copy frontend source
 COPY frontend/ ./
-
 # Build frontend
 RUN npm run build
 
 # ===========================
 # Stage 2: Build the Go binary
 # ===========================
-FROM golang:1.24-alpine AS go-builder
+FROM golang:1.25-alpine AS go-builder
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -41,7 +38,6 @@ COPY internal/ ./internal/
 COPY assets/ ./assets/
 COPY docs/ ./docs/
 
-
 # Copy built frontend from previous stage
 COPY --from=frontend-builder /app/frontend/dist ./assets/frontend/
 
@@ -61,23 +57,18 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 # ================================
 FROM alpine:3.20
 
-# Install minimal runtime dependencies
+# Install runtime dependencies and create non-root user in a single layer
 RUN apk add --no-cache \
     ca-certificates \
     tzdata \
-    curl
-
-# Create non-root user
-RUN addgroup -g 1000 -S hostinfo && \
+    curl && \
+    addgroup -g 1000 -S hostinfo && \
     adduser -S -u 1000 -G hostinfo -s /bin/sh hostinfo
 
 WORKDIR /app
 
-# Copy binary from builder
-COPY --from=go-builder /app/hostinfo /app/hostinfo
-
-# Set ownership
-RUN chown -R hostinfo:hostinfo /app
+# Copy binary from builder with ownership already set
+COPY --from=go-builder --chown=hostinfo:hostinfo /app/hostinfo /app/hostinfo
 
 # Switch to non-root user
 USER hostinfo

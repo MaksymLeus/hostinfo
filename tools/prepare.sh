@@ -152,7 +152,7 @@ check_optional_command() {
 }
 
 check_requirements() {
-  require_command go "Go is required. Install from https://go.dev/dl/" "1.24.0" "version"
+  require_command go "Go is required. Install from https://go.dev/dl/" "1.25.0" "version"
 
   check_optional_command npm "npm" "11.6.0" "-v"
   check_optional_command node "Node.js" "24.13.0" "-v"

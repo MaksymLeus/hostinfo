@@ -124,6 +124,10 @@ definitions:
         type: array
       memory:
         $ref: '#/definitions/handlers.MemoryInfo'
+      net:
+        items:
+          $ref: '#/definitions/handlers.NetInfo'
+        type: array
       os:
         description: System
         type: string
@@ -172,6 +176,27 @@ definitions:
       usedPercent:
         type: number
     type: object
+  handlers.NetInfo:
+    properties:
+      addrs:
+        items:
+          type: string
+        type: array
+      bytesRecv:
+        type: integer
+      bytesSent:
+        type: integer
+      errorsIn:
+        type: integer
+      errorsOut:
+        type: integer
+      name:
+        type: string
+      packetsRecv:
+        type: integer
+      packetsSent:
+        type: integer
+    type: object
   handlers.PingResult:
     properties:
       avg_rtt:
@@ -216,6 +241,15 @@ definitions:
           type: string
         type: object
       status:
+        type: string
+    type: object
+  metrics.DataPoint:
+    properties:
+      cpuPercent:
+        type: number
+      memPercent:
+        type: number
+      timestamp:
         type: string
     type: object
 info:
@@ -343,6 +377,23 @@ paths:
       summary: Readiness probe
       tags:
       - health
+  /history:
+    get:
+      consumes:
+      - application/json
+      description: Returns recent in-memory CPU and memory time-series data for sparklines
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/metrics.DataPoint'
+            type: array
+      summary: Get historical metrics
+      tags:
+      - info
   /info:
     get:
       consumes:

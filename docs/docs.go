@@ -198,6 +198,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/history": {
+            "get": {
+                "description": "Returns recent in-memory CPU and memory time-series data for sparklines",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "info"
+                ],
+                "summary": "Get historical metrics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/metrics.DataPoint"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/info": {
             "get": {
                 "description": "Returns comprehensive details about identity, system, hardware, network, and runtime",
@@ -528,6 +554,12 @@ const docTemplate = `{
                 "memory": {
                     "$ref": "#/definitions/handlers.MemoryInfo"
                 },
+                "net": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.NetInfo"
+                    }
+                },
                 "os": {
                     "description": "System",
                     "type": "string"
@@ -601,6 +633,38 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.NetInfo": {
+            "type": "object",
+            "properties": {
+                "addrs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bytesRecv": {
+                    "type": "integer"
+                },
+                "bytesSent": {
+                    "type": "integer"
+                },
+                "errorsIn": {
+                    "type": "integer"
+                },
+                "errorsOut": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "packetsRecv": {
+                    "type": "integer"
+                },
+                "packetsSent": {
+                    "type": "integer"
+                }
+            }
+        },
         "handlers.PingResult": {
             "type": "object",
             "properties": {
@@ -667,6 +731,20 @@ const docTemplate = `{
                     }
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "metrics.DataPoint": {
+            "type": "object",
+            "properties": {
+                "cpuPercent": {
+                    "type": "number"
+                },
+                "memPercent": {
+                    "type": "number"
+                },
+                "timestamp": {
                     "type": "string"
                 }
             }

@@ -116,7 +116,7 @@ Project documentation lives inside the `/docs` directory:
 
 ## Tech Stack
 
-**Backend:** Go 1.24+, Echo, pro-bing, gopsutil
+**Backend:** Go 1.25+, Echo, pro-bing, gopsutil
 
 **Frontend:** Node 23.13+, NPM 11.6+, Vite
 

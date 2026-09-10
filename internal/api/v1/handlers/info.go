@@ -53,6 +53,7 @@ func Info(c echo.Context) error {
 		Memory: getMemory(),
 		Load:   getLoad(),
 		Disk:   getDisk(),
+		Net:    getNetForMetrics(),
 
 		// Platform
 		Cloud:      DetectCloud(),
