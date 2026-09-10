@@ -16,6 +16,9 @@ if command -v staticcheck >/dev/null 2>&1; then
   staticcheck ./...
 fi
 
+echo "➡ Running go test..."
+go test -v ./...
+
 # echo "➡ Running go build..."
 # go build ./...
 
